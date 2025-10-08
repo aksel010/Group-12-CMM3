@@ -24,7 +24,7 @@ Design cooling channel geometry (width, height, number of channels) and flow rat
 ## Quick Start
 ```bash
 # Clone repository
-git clone https://github.com/GPMorg/GROUP-12-CMM3.git
+git clone https://github.com/aksel010/GROUP-12-CMM3.git
 
 # Install dependencies
 pip install -r requirements.txt
