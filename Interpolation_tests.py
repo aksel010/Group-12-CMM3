@@ -34,4 +34,3 @@ def import_nist_txt(filename='n heptane.txt'):
 
 nist_df = import_nist_txt('n heptane.txt') 
 print(nist_df.head())
-    
