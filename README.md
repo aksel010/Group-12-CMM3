@@ -7,7 +7,7 @@ This project optimizes the design of a liquid cooling plate for EV battery therm
 
 ### Team Members
 - Aksel Huillard
-- Leo Pullar
+- Leo Curran
 - Nicholas Tan
 - Gregory Morgan
 
