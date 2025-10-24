@@ -2,10 +2,23 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+# --- Constants ---
+N_HEPTANE_MOLAR_MASS = 0.100205  # kg/mol
+DITTUS_BOELTER_EXPONENT = 0.4   # for heating
+NIST_DATA_FILE = Path(__file__).parent / 'n heptane 2.txt'
+
+# fixed parameters for the cooling channel
+M_DOT = 0.05    # Mass flow rate [kg/s]
+D = 0.005       # Channel diameter [m]
 
 #clean NIST data
-def import_nist_txt(filename='n heptane 2.txt'):
-    df = pd.read_csv(filename, sep=r'\s+', skiprows=1, header=None)
+def import_nist_txt(filepath: str | Path) -> pd.DataFrame:
+    """
+    Imports and cleans fluid property data from a NIST text file.
+    """
+    df = pd.read_csv(filepath, sep=r'\s+', skiprows=1, header=None)
     
     column_map = {
         0: 'T_K',          
@@ -18,27 +31,21 @@ def import_nist_txt(filename='n heptane 2.txt'):
 
     df = df.rename(columns=column_map)[list(column_map.values())]
     
-    M = 0.100205 
-    
-    df['Density'] = df['Density'] * 1000 * M 
-    df['Cp'] = df['Cp'] / M
+    # Unit conversions to SI
+    df['Density'] = df['Density'] * 1000 * N_HEPTANE_MOLAR_MASS  # mol/L to kg/m^3
+    df['Cp'] = df['Cp'] / N_HEPTANE_MOLAR_MASS                  # J/(mol·K) to J/(kg·K)
     df['Viscosity'] = df['Viscosity'] * 1e-6 
     
     return df
 
 #import and assignment
-nist_df = import_nist_txt('n heptane 2.txt') 
+nist_df = import_nist_txt(NIST_DATA_FILE)
 
 T_data = nist_df['T_K'].values
 rho_data = nist_df['Density'].values
 Cp_data = nist_df['Cp'].values
 lambda_data = nist_df['Thermal_Cond'].values
 mu_data = nist_df['Viscosity'].values
-
-# fixed parameters
-M_DOT = 0.05    
-D = 0.005    
-N = 0.4        # dittus exponent for heating
 
 # derived constant C_Re
 C_RE = 4 * M_DOT / (np.pi * D)
@@ -51,15 +58,19 @@ mu_func = interp1d(T_data, mu_data, kind='cubic', bounds_error=False, fill_value
 rho_func = interp1d(T_data, rho_data, kind='cubic', bounds_error=False, fill_value=(rho_data[0], rho_data[-1]))
 
 #create H(T)
-def calculate_h(T):
-
+def calculate_h(T: float | np.ndarray) -> float | np.ndarray:
+    """
+    Calculates the heat transfer coefficient (h) for n-heptane at a given temperature.
+    This function is vectorized to accept NumPy arrays.
+    """
     lam = lambda_func(T)
     Cp = Cp_func(T)
     mu = mu_func(T)
     
+    # Use Dittus-Boelter equation for Nusselt number
     Re = C_RE / mu
     Pr = (Cp * mu) / lam
-    Nu = 0.023 * (Re**0.8) * (Pr**N)
+    Nu = 0.023 * (Re**0.8) * (Pr**DITTUS_BOELTER_EXPONENT)
     h = (Nu * lam) / D
     
     return h
@@ -69,8 +80,8 @@ if __name__ == '__main__':
     
     print(f"System Constant C_Re = {C_RE:.2f} kg/(m·s)\n")
     test_T = np.linspace(T_data.min(), T_data.max(), 100)
-
-    h_values = [calculate_h(T) for T in test_T]
+    
+    h_values = calculate_h(test_T) # Vectorized call
     mu_values = mu_func(test_T)
     Cp_values = Cp_func(test_T)
     lambda_values = lambda_func(test_T)
@@ -88,8 +99,7 @@ if __name__ == '__main__':
     ax1.set_xlabel('Temperature (T) [K]')
     ax1.set_ylabel(r'Viscosity ($\mu$) [Pa$\cdot$s]', color='blue')
     
-    # Manually set a neutral color for the twin axis label
-    ax1_twin.set_ylabel(r'$C_p$ and $\lambda$ [Unit]', color='black') 
+    ax1_twin.set_ylabel(r'$C_p$ [J/(kg·K)] and $\lambda$ [W/(m·K)]')
     
     lines, labels = ax1.get_legend_handles_labels()
     lines2, labels2 = ax1_twin.get_legend_handles_labels()
