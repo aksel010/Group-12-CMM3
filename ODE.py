@@ -47,7 +47,7 @@ def dTb_dt(t, Tb, params):
 t0 = 0
 T0 = T_in
 # total solution interval
-t_final = 100
+t_final = 10000
 # step size
 H = 0.2
 # ------------------------------------------------------
