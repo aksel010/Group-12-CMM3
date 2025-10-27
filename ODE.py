@@ -15,7 +15,7 @@ params_initial = (
     R_0,        # R [Ω]
     np.pi*D**2/4,     # A_s [m²]
     T_in,      # T_c_in [K]
-    M_DOT    # m_dot_c [kg/s]
+    1    # m_dot_c [kg/s]
 )
 
 def dTb_dt (Tb, t, params):
@@ -114,6 +114,5 @@ plt.xlabel('x')
 plt.ylabel('y(x)')
 plt.show()
 # ------------------------------------------------------
-
 print (params_initial)
 
