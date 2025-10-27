@@ -105,20 +105,7 @@ for i in range(n_step+1):
     print(i,t_rk[i],T_rk[i], T0 * math.exp(-t_rk[i]),
             (T_rk[i]- T0 * math.exp(-t_rk[i]))/ 
             (T0 * math.exp(-t_rk[i])) * 100)
-# ------------------------------------------------------
-
-# ------------------------------------------------------
-# print results in a text file (for later use if needed)
-file_name= 'output_h' + str(H) + '.dat' 
-f_io = open(file_name,'w') 
-for i in range(n_step+1):
-    s1 = str(i)
-    s2 = str(t_rk[i])
-    s3 = str(T_rk[i])
-    s4 = s1 + ' ' + s2 + ' ' + s3
-    f_io.write(s4 + '\n')
-f_io.close()
-# ------------------------------------------------------
+# -----------------------------------------------------
 
 # ------------------------------------------------------
 # plot results
