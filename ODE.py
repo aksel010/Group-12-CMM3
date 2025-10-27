@@ -42,3 +42,13 @@ def dTb_dt(t, Tb, params):
     
     return dTb_dt
 
+# evaluate derivative for a range of Tb values at t=0 (time not used in rhs)
+Tb_values = np.linspace(270, 370, 100)
+dTb_values = dTb_dt(0, Tb_values, params_initial)   # pass a scalar time and array Tb if calculate_h and Cp_func are vectorized
+plt.plot(Tb_values, dTb_values)
+plt.xlabel('Tb (K)')
+plt.ylabel('dTb/dt (K/s)')
+plt.show()
+
+plt.savefig("tb_vs_time.png", dpi=150)
+
