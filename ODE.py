@@ -22,7 +22,7 @@ def dTb_dt(t, Tb, params):
     Differential equation for bulk temperature Tb
     """
     # Unpack parameters
-    m, cp_b, I, R, h, A_s, T_c_in, m_dot_c= params
+    m, cp_b, I, R, A_s, T_c_in, m_dot_c= params
 
     # Calculate h based on current bulk temperature
     h = calculate_h(Tb)
