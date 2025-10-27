@@ -26,7 +26,7 @@ def dTb_dt (Tb, t, params):
     m, cp_b, I, R, A_s, T_c_in, m_dot_c= params
 
     # Calculate h based on current bulk temperature
-    h = calculate_h(Tb)
+    h = 400
     cp_c = Cp_func(Tb)
     
     # Electrical heating term
