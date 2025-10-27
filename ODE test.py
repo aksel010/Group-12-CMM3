@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # Simplified parameters - fixed values
 h_fixed = 400  # W/m²K - fixed heat transfer coefficient
-cp_fixed = 1000  # J/(kg·K) - fixed heat capacity (typical for batteries)
+cp_fixed = 1306  # J/(kg·K) - fixed heat capacity (typical for batteries)
 
 # Parameters
 I_0 = 50
@@ -17,7 +17,7 @@ params_simple = (
     R_0,      # R [Ω]
     0.1,      # A_s [m²] - more realistic surface area
     298.15,   # T_c_in [K] - 25°C
-    0.001      # m_dot_c [kg/s]
+    0.01      # m_dot_c [kg/s]
 )
 
 def dTb_dt_simple(Tb, t, params):
@@ -29,12 +29,16 @@ def dTb_dt_simple(Tb, t, params):
     
     # Fixed heat transfer coefficient
     h = h_fixed
+    cp_c = 2219
     
     # Electrical heating term
     electrical_heating = I**2 * R
     
-    # Simple cooling term (Newton's law of cooling)
-    cooling = h * A_s * (Tb - T_c_in)
+    # Cooling term denominator
+    cooling_denom = 1 + (h * A_s) / (2 * m_dot_c * cp_c)
+    
+    # Cooling term
+    cooling = (h * A_s * (Tb - T_c_in)) / cooling_denom
     
     # Rate of change of temperature
     dTb_dt_val = (electrical_heating - cooling) / (m * cp_b)
@@ -106,8 +110,7 @@ def plot_temperature(t, T):
     plt.grid(True, alpha=0.3)
     
     # Add some reference lines
-    plt.axhline(y=45, color='orange', linestyle='--', alpha=0.7, label='Optimal Max (45°C)')
-    plt.axhline(y=60, color='red', linestyle='--', alpha=0.7, label='Safety Limit (60°C)')
+    plt.axhline(y=35, color='orange', linestyle='--', alpha=0.7, label='Optimal Max (45°C)')
     
     plt.legend(fontsize=10)
     plt.tight_layout()

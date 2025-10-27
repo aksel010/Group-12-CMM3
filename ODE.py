@@ -6,16 +6,16 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
 I_0 = 50
-R_0 = 240/I_0
+R_0 = 0.1
 
 params_initial = (
-    1.0,      # m [kg]
+    m_b,      # m [kg]
     C_b,      # cp_b [J/(kg·K)]
     I_0,       # I [A]
     R_0,        # R [Ω]
-    np.pi*D**2/4,     # A_s [m²]
+    0.01,     # A_s [m²]
     T_in,      # T_c_in [K]
-    1    # m_dot_c [kg/s]
+    0.01    # m_dot_c [kg/s]
 )
 
 def dTb_dt (Tb, t, params):
@@ -27,7 +27,7 @@ def dTb_dt (Tb, t, params):
 
     # Calculate h based on current bulk temperature
     h = 400
-    cp_c = Cp_func(Tb)
+    cp_c = 2219
     
     # Electrical heating term
     electrical_heating = I**2 * R
@@ -97,15 +97,6 @@ for i in range(n_step):
     # use the RK method
     T_rk[i+1] = T_rk[i] + H * slope  
 # ------------------------------------------------------
-
-# ------------------------------------------------------
-# print results on screen
-print ('Solution: step x y-eul y-exact error%')
-for i in range(n_step+1):
-    print(i,t_rk[i],T_rk[i], T0 * math.exp(-t_rk[i]),
-            (T_rk[i]- T0 * math.exp(-t_rk[i]))/ 
-            (T0 * math.exp(-t_rk[i])) * 100)
-# -----------------------------------------------------
 
 # ------------------------------------------------------
 # plot results
