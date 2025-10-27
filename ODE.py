@@ -9,7 +9,7 @@ I_0 = 50
 R_0 = 240/I_0
 
 params_initial = (
-    m_b,      # m [kg]
+    1.0,      # m [kg]
     C_b,      # cp_b [J/(kg·K)]
     I_0,       # I [A]
     R_0,        # R [Ω]
@@ -18,7 +18,7 @@ params_initial = (
     M_DOT    # m_dot_c [kg/s]
 )
 
-def dTb_dt(t, Tb, params):
+def dTb_dt (Tb, t, params):
     """
     Differential equation for bulk temperature Tb
     """
@@ -47,7 +47,7 @@ def dTb_dt(t, Tb, params):
 t0 = 0
 T0 = T_in
 # total solution interval
-t_final = 10000
+t_final = 1000
 # step size
 H = 0.2
 # ------------------------------------------------------
@@ -99,21 +99,6 @@ for i in range(n_step):
 # ------------------------------------------------------
 
 # ------------------------------------------------------
-# super refined sampling of the exact solution c*e^(-x)
-# n_exact linearly spaced numbers
-# only needed for plotting reference solution
-
-# Definition of array to store the exact solution
-n_exact = 1000
-t_exact = np.linspace(0,t_final,n_exact+1) 
-T_exact = np.zeros(n_exact+1)
-
-# exact values of the solution
-for i in range(n_exact+1):
-    T_exact[i] = T0 * math.exp(-t_exact[i])
-# -----------------------------------------------------
-
-# ------------------------------------------------------
 # print results on screen
 print ('Solution: step x y-eul y-exact error%')
 for i in range(n_step+1):
@@ -137,9 +122,11 @@ f_io.close()
 
 # ------------------------------------------------------
 # plot results
-plt.plot(t_rk, T_rk , 'b.-',t_exact, T_exact , 'r-')
+plt.plot(t_rk, T_rk)
 plt.xlabel('x')
 plt.ylabel('y(x)')
 plt.show()
 # ------------------------------------------------------
+
+print (params_initial)
 
