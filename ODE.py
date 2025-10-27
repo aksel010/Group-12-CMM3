@@ -69,7 +69,7 @@ t_rk[0] = t0
 
 # Populate the x array
 for i in range(n_step):
-    t_rk[i+1]  = t_rk[i]  + h
+    t_rk[i+1]  = t_rk[i]  + H
 
 # Apply RK method n_step times
 for i in range(n_step):
