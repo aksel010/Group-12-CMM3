@@ -17,7 +17,7 @@ params_simple = (
     R_0,      # R [Ω]
     0.1,      # A_s [m²] - more realistic surface area
     298.15,   # T_c_in [K] - 25°C
-    0.01      # m_dot_c [kg/s]
+    0.001      # m_dot_c [kg/s]
 )
 
 def dTb_dt_simple(Tb, t, params):
