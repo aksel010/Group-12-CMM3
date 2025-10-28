@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
 from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
 
-valid_runs = []
+I_runs = []
+delta_T = []
 
 def I_params(I):
     return (
@@ -21,18 +22,15 @@ for idx, i in enumerate(range(5, 100, 5)):
     t_total = q_b / I_0  # total time [s]
     t_i, T_i = Tb(dTb_dt, t_total, I_params(I_0))
     print(T_i[-1])
-    if T_i[-1] < T_b_max:
-        valid_runs.append(I_0)
+    I_runs.append(I_0)
+    delta_T.append(T_i[-1] - T_b_max)
 
-I_max = max(valid_runs) if valid_runs else None
-t_opt = q_b / I_max if I_max else None
-t_opt, T_opt = Tb(dTb_dt, t_opt, I_params(I_max))
-print ("Valid current runs (A) that exceed max battery temperature:", valid_runs)
-plt.plot(t_opt, T_opt, label=f'Optimal I = {I_max} A', color='red', linewidth=2)
-plt.xlabel('t (s)')
-plt.ylabel('Temperature of the Battery $T_b$ (K)')
-plt.title('Optimal Current Profile to Avoid Overheating')   
-plt.legend()
-plt.show()  
+
+plt.scatter(I_runs, delta_T)
+plt.xlabel('Current (A)')
+plt.ylabel('Delta T (K)')       
+plt.axhline(0, color='red', linestyle='--')
+plt.title('Delta T vs Current')
+plt.show()
     
     
