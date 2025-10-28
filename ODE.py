@@ -1,12 +1,13 @@
 import math
 from heptane_itpl import M_DOT, D, Cp_func,calculate_h
-from config import C_b, T_in, m_b
+from config import C_b, T_in, m_b, q_b
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
 I_0 = 50
 R_0 = 0.1
+t_total = q_b / I_0  # total time [s]
 
 params_initial = (
     m_b,      # m [kg]
@@ -15,7 +16,7 @@ params_initial = (
     R_0,        # R [Ω]
     0.01,     # A_s [m²]
     T_in,      # T_c_in [K]
-    0.01    # m_dot_c [kg/s]
+    M_DOT    # m_dot_c [kg/s]
 )
 
 def dTb_dt (Tb, t, params):
@@ -26,8 +27,8 @@ def dTb_dt (Tb, t, params):
     m, cp_b, I, R, A_s, T_c_in, m_dot_c= params
 
     # Calculate h based on current bulk temperature
-    h = 400
-    cp_c = 2219
+    h = calculate_h(T_c_in)
+    cp_c = Cp_func(T_c_in)
     
     # Electrical heating term
     electrical_heating = I**2 * R
@@ -43,67 +44,66 @@ def dTb_dt (Tb, t, params):
     
     return dTb_dt
 
-# initial conditions
-t0 = 0
-T0 = T_in
-# total solution interval
-t_final = 1000
-# step size
-H = 0.2
-# ------------------------------------------------------
+def Tb(dTdt, t_span, params):
+    # initial conditions
+    t0 = 0
+    T0 = T_in
+    # total solution interval
+    t_final= t_span
+    # step size
+    H = 0.2
+    # Fourth Order Runge-Kutta method
 
-# ------------------------------------------------------
-# Fourth Order Runge-Kutta method
+    # number of steps
+    n_step = math.ceil(t_final/H)
 
-# number of steps
-n_step = math.ceil(t_final/H)
+    # Definition of arrays to store the solution
+    T_rk = np.zeros(n_step+1)
+    t_rk = np.zeros(n_step+1)
 
-# Definition of arrays to store the solution
-T_rk = np.zeros(n_step+1)
-t_rk = np.zeros(n_step+1)
+    # Initialize first element of solution arrays 
+    # with initial condition
+    T_rk[0] = T0
+    t_rk[0] = t0 
 
-# Initialize first element of solution arrays 
-# with initial condition
-T_rk[0] = T0
-t_rk[0] = t0 
+    # Populate the x array
+    for i in range(n_step):
+        t_rk[i+1]  = t_rk[i]  + H
 
-# Populate the x array
-for i in range(n_step):
-    t_rk[i+1]  = t_rk[i]  + H
-
-# Apply RK method n_step times
-for i in range(n_step):
-   
-    # Compute the four slopes
-    t_dummy = t_rk[i]
-    T_dummy = T_rk[i]
-    k1 =  dTb_dt(T_dummy,t_dummy, params_initial)
+    # Apply RK method n_step times
+    for i in range(n_step):
     
-    t_dummy = t_rk[i]+H/2
-    T_dummy = T_rk[i] + k1 * H/2
-    k2 =  dTb_dt(T_dummy,t_dummy, params_initial)
+        # Compute the four slopes
+        t_dummy = t_rk[i]
+        T_dummy = T_rk[i]
+        k1 =  dTdt(T_dummy,t_dummy, params)
+        
+        t_dummy = t_rk[i]+H/2
+        T_dummy = T_rk[i] + k1 * H/2
+        k2 =  dTdt(T_dummy,t_dummy, params)
 
-    t_dummy = t_rk[i]+H/2
-    T_dummy = T_rk[i] + k2 * H/2
-    k3 =  dTb_dt(T_dummy,t_dummy, params_initial)
+        t_dummy = t_rk[i]+H/2
+        T_dummy = T_rk[i] + k2 * H/2
+        k3 =  dTdt(T_dummy,t_dummy, params)
 
-    t_dummy = t_rk[i]+H
-    T_dummy = T_rk[i] + k3 * H
-    k4 =  dTb_dt(T_dummy,t_dummy, params_initial)
+        t_dummy = t_rk[i]+H
+        T_dummy = T_rk[i] + k3 * H
+        k4 =  dTdt(T_dummy,t_dummy, params)
 
-    # compute the slope as weighted average of four slopes
-    slope = 1/6 * k1 + 2/6 * k2 + 2/6 * k3 + 1/6 * k4 
+        # compute the slope as weighted average of four slopes
+        slope = 1/6 * k1 + 2/6 * k2 + 2/6 * k3 + 1/6 * k4 
 
-    # use the RK method
-    T_rk[i+1] = T_rk[i] + H * slope  
-# ------------------------------------------------------
+        # use the RK method
+        T_rk[i+1] = T_rk[i] + H * slope  
+
+    return t_rk, T_rk
+    # ------------------------------------------------------
 
 # ------------------------------------------------------
 # plot results
-plt.plot(t_rk, T_rk)
-plt.xlabel('x')
-plt.ylabel('y(x)')
+t_i, T_i = Tb(dTb_dt, t_total, params_initial)
+plt.plot(t_i, T_i)
+plt.xlabel('t (s)')
+plt.ylabel('Temperature of the Battery $T_b$ (K)')
 plt.show()
 # ------------------------------------------------------
-print (params_initial)
-
