@@ -7,4 +7,4 @@ jupyterlab
 pytest==7.3.1
 seaborn==0.12.2
 tqdm==4.65.0
-pywin32
+pywinpty==2.0.12
