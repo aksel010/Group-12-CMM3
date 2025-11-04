@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+from scipy.optimize import fsolve
 from ODE import Tb, dTb_dt
 from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
  
 I_runs = []
 delta_T = []
 final_temperatures = []
+critical_current = None # Initialize to handle cases where it's not found
  
 def I_params(I):
     return (
@@ -39,19 +41,17 @@ print(f"Delta T range: {delta_T_array.min():.2f}K to {delta_T_array.max():.2f}K"
  
  
 if np.any(delta_T_array <= 0) and np.any(delta_T_array >= 0):
-    
-    current_vs_deltaT = interp1d(delta_T_array, I_array, kind='linear', 
-                                bounds_error=False, fill_value="extrapolate")
- 
-    critical_current = float(current_vs_deltaT(0))
- 
+    # Create an interpolation function for delta_T as a function of current
+    deltaT_vs_current = interp1d(I_array, delta_T_array, kind='cubic',
+                                 bounds_error=False, fill_value="extrapolate")
+
+    # Use a root-finding algorithm to find the current where delta_T is zero
+    # fsolve returns an array, so we take the first element
+    critical_current_solution = fsolve(deltaT_vs_current, x0=np.mean(I_array))
+    critical_current = critical_current_solution[0]
+
     print(f"CRITICAL CURRENT: {critical_current:.2f} A")
-    
- 
-    '''temp_vs_current = interp1d(I_array, final_temperatures, kind='linear')
-    predicted_final_temp = float(temp_vs_current(critical_current))
-    print(f"Predicted final temp at critical current: {predicted_final_temp:.2f} K")'''
-    
+
 else:
     print("Never reaches T_b_max")
     if delta_T_array.min() > 0:
@@ -59,27 +59,26 @@ else:
     else:
         print("System never reaches T_b_max (ΔT < 0 for all currents)")
  
- 
 plt.figure(figsize=(10, 6))
 plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
  
-# Plot interpolation line 
-if 'critical_current' in locals() and np.any(delta_T_array <= 0) and np.any(delta_T_array >= 0):
-    
+# Plot interpolation line if data crosses the zero-axis
+if np.any(delta_T_array <= 0) and np.any(delta_T_array >= 0):
     I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
     delta_T_smooth = interp1d(I_array, delta_T_array, kind='cubic')(I_smooth)
     plt.plot(I_smooth, delta_T_smooth, 'r-', alpha=0.7, label='Interpolation', linewidth=2)
-    
-    # Mark critical point
-    plt.plot(critical_current, 0, 'ro', markersize=10, 
-             label=f'Critical Point: {critical_current:.1f} A', zorder=6)
  
 plt.xlabel('Current (A)')
 plt.ylabel('Delta T (K)')       
 plt.axhline(0, color='red', linestyle='--', linewidth=2, label='Safe Limit (ΔT=0)')
-plt.axvline(critical_current if 'critical_current' in locals() else 0, 
-            color='green', linestyle=':', linewidth=2, 
-            label=f'Critical Current: {critical_current:.2f} A' if 'critical_current' in locals() else 'No critical current found')
+
+# Plot critical current if it was found
+if critical_current is not None:
+    plt.plot(critical_current, 0, 'go', markersize=10,
+             label=f'Critical Point: {critical_current:.1f} A', zorder=6)
+    plt.axvline(critical_current, color='green', linestyle=':', linewidth=2,
+                label=f'Critical Current: {critical_current:.2f} A')
+
  
 plt.title('Delta T vs Current - Critical Current Analysis')
 plt.legend()
