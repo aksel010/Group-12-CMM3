@@ -1,0 +1,60 @@
+import numpy as np
+from scipy.optimize import fsolve
+import sympy as sp
+from pathlib import Path
+from heptane_itpl import (
+        calculate_h, 
+        Cp_func, 
+        rho_func, 
+        mu_func,
+        lambda_func # lambda_func (thermal conductivity) is also needed by calculate_h
+    )
+
+class SystemParams:
+    # we need to decide these values (maybe from geometry optimization?)
+    I_sq_R = 10.0           # Steady-state generated heat, I^2 * R (Watts) - Heat from THIS cell
+    T_c_in = 293.15         # Coolant inlet temperature (K) - Inlet T to THIS channel
+    
+    # --- Geometry & Fluid Inputs (Single Channel Path) ---
+    N = 6 # number of internal structures in branch
+    w_branch = 30e-03/(N+1) # equivalent internal width of branch (m)
+    h_branch = 2.75e-03    # equivalent internal height of branch (m)
+    d_H = 2 * w_branch * h_branch/ (w_branch + h_branch)       # Hydraulic Diameter of branch (m)
+    D = 17e-03    # main pipe diameter (m)
+    S_a = np.pi * (D/2)**2  # main pipe cross-sectional area (m^2)
+    S_b = w_branch * h_branch # branch cross-sectional area (m^2)
+    L_a = 0.5    # main pipe length (m)
+    L_b = 0.5      # Branch length (m)
+    n = 5        # number of branches
+    g = 9.81     # gravitational acceleration (m/s^2)
+
+
+def H_i(T_c_avg_K, n):
+    
+    rho = rho_func(T_c_avg_K)
+    mu = mu_func(T_c_avg_K)
+    nu = mu / rho  # kinematic viscosity    
+
+    Q = sp.symbols(f'Q1:{n+1}')
+    H = sp.symbols(f'H1:{n+1}')
+    
+    equations = []
+    
+    # Define the constant term for the La part
+    for i in range(1, n + 1):
+        # Inner sum over all Q_m / Sa
+        inner_sum = sum(Q[m] / SystemParams.S_a for m in range(n))
+        
+        # Outer sum: both terms inside
+        outer_sum = 0
+        for k in range(1, i + 1):
+            term_a = (32 * nu * SystemParams.L_a / (SystemParams.D**2 * SystemParams.g)) * inner_sum
+            term_b = (32 * nu * SystemParams.L_b * Q[k-1]) / (SystemParams.d_H**2 * SystemParams.g * SystemParams.S_b)
+            outer_sum += term_a + term_b
+        
+        H_expr = 2 * outer_sum
+        equations.append(sp.Eq(H[i-1], H_expr))
+    
+    return equations, H, Q
+
+print(H_i(300, 3))  # Example usage 

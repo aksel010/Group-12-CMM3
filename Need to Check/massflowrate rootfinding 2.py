@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import fsolve
+import sympy as sp
 from pathlib import Path
 from heptane_itpl_mdottest import (
         calculate_h, 
@@ -17,15 +18,15 @@ class SystemParams:
     # --- Geometry & Fluid Inputs (Single Channel Path) ---
     N = 6 # number of internal structures in branch
     w_branch = 30e-03/(N+1) # equivalent internal width of branch (m)
-    h_branch = 2.75e-0.3    # equivalent internal height of branch (m)
+    h_branch = 2.75e-03    # equivalent internal height of branch (m)
     d_H = 2 * w_branch * h_branch/ (w_branch + h_branch)       # Hydraulic Diameter of branch (m)
+    D = 17e-03    # main pipe diameter (m)
+    S_a = np.pi * (D/2)**2  # main pipe cross-sectional area (m^2)
+    S_b = w_branch * h_branch # branch cross-sectional area (m^2)
     L_a = 0.5    # main pipe length (m)
-    L_b =        # Branch length (m)
-                            # (Separating + Converging + Bends/Twists)
-    K_minor = 3.5           # Total minor loss coefficient for THIS single path
-                            # (Sum of all bends, twists, and manifold transitions)
-    epsilon = 1.5e-5        # Pipe roughness (m)
-    A_s = 0.05              # Heat transfer surface area (m^2) for THIS single cell
+    L_b = 0.5      # Branch length (m)
+    n = 5        # number of branches
+    g = 9.81     # gravitational acceleration (m/s^2)
 
 # HYDRAULIC BALANCE FUNCTIONS
 
@@ -35,34 +36,35 @@ def pump_head_curve(mass_flow_rate_kg_s):
     P_fixed_supplied = 5000.0  # Constant pressure head supplied to the single channel (Pa)
     return P_fixed_supplied
 
-def branch_head_loss_calc(m_dot_kg_s, T_c_avg_K, D, L, K_minor, epsilon):
+def H_i(T_c_avg_K, n):
     
     rho = rho_func(T_c_avg_K)
     mu = mu_func(T_c_avg_K)
-    nu = mu / rho  # kinematic viscosity
-    n = 5
+    nu = mu / rho  # kinematic viscosity    
 
-    for i in range (n):
+    Q = sp.symbols(f'Q1:{n+1}')
+    H = sp.symbols(f'H1:{n+1}')
     
-    # volume flow rate
-    if m_dot_kg_s <= 0: return 1e10 # Prevent division by zero and steer solver
-    Q_vol = m_dot_kg_s / rho
-    A_pipe = np.pi * D**2 / 4
-    V = Q_vol / A_pipe
+    equations = []
     
-    Re = rho * V * D / mu
-    
-    # Darcy friction factor
-    if Re < 2300: # Laminar flow
-        f = 64 / Re
-    else: # Turbulent flow (Swamee–Jain approximation)
-        f = 0.25 / (np.log10((epsilon / (3.7 * D)) + (5.74 / Re**0.9)))**2
+    # Define the constant term for the La part
+    for i in range(1, n + 1):
+        # Inner sum over all Q_m / Sa
+        inner_sum = sum(Q[m] / SystemParams.Sa for m in range(n))
         
-    # Total head Loss
-    P_loss = (f * (L / D) + K_minor) * (rho * V**2 / 2)
+        # Outer sum: both terms inside
+        outer_sum = 0
+        for k in range(1, i + 1):
+            term_a = (32 * nu * SystemParams.La / (SystemParams.d**2 * g)) * inner_sum
+            term_b = (32 * nu * SystemParams.Lb * Q[k-1]) / (SystemParams.d_H**2 * SystemParams.g * SystemParams.Sb)
+            outer_sum += term_a + term_b
+        
+        H_expr = 2 * outer_sum
+        equations.append(sp.Eq(H[i-1], H_expr))
     
-    return P_loss
+    return equations, H, Q
 
+print(H_i(300, 3))  # Example usage
 # root finding of coupled system
 def pressure_balance_couple(mass_flow_rate_kg_s, params):
     """
