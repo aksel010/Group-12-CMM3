@@ -15,8 +15,12 @@ class SystemParams:
     T_c_in = 293.15         # Coolant inlet temperature (K) - Inlet T to THIS channel
     
     # --- Geometry & Fluid Inputs (Single Channel Path) ---
-    D_pipe = 0.005          # Hydraulic Diameter of the channel (m)
-    L_pipe = 0.5            # Total equivalent length of THIS single flow path (m)
+    N = 6 # number of internal structures in branch
+    w_branch = 30e-03/(N+1) # equivalent internal width of branch (m)
+    h_branch = 2.75e-0.3    # equivalent internal height of branch (m)
+    d_H = 2 * w_branch * h_branch/ (w_branch + h_branch)       # Hydraulic Diameter of branch (m)
+    L_a = 0.5    # main pipe length (m)
+    L_b =        # Branch length (m)
                             # (Separating + Converging + Bends/Twists)
     K_minor = 3.5           # Total minor loss coefficient for THIS single path
                             # (Sum of all bends, twists, and manifold transitions)
@@ -31,10 +35,14 @@ def pump_head_curve(mass_flow_rate_kg_s):
     P_fixed_supplied = 5000.0  # Constant pressure head supplied to the single channel (Pa)
     return P_fixed_supplied
 
-def system_head_loss_calc(m_dot_kg_s, T_c_avg_K, D, L, K_minor, epsilon):
+def branch_head_loss_calc(m_dot_kg_s, T_c_avg_K, D, L, K_minor, epsilon):
     
     rho = rho_func(T_c_avg_K)
     mu = mu_func(T_c_avg_K)
+    nu = mu / rho  # kinematic viscosity
+    n = 5
+
+    for i in range (n):
     
     # volume flow rate
     if m_dot_kg_s <= 0: return 1e10 # Prevent division by zero and steer solver
