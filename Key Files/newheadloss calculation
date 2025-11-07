@@ -10,51 +10,111 @@ from heptane_itpl import (
         lambda_func # lambda_func (thermal conductivity) is also needed by calculate_h
     )
 
+import numpy as np
+from scipy.optimize import fsolve
+
 class SystemParams:
-    # we need to decide these values (maybe from geometry optimization?)
-    I_sq_R = 10.0           # Steady-state generated heat, I^2 * R (Watts) - Heat from THIS cell
-    T_c_in = 293.15         # Coolant inlet temperature (K) - Inlet T to THIS channel
-    
-    # --- Geometry & Fluid Inputs (Single Channel Path) ---
-    N = 6 # number of internal structures in branch
-    w_branch = 30e-03/(N+1) # equivalent internal width of branch (m)
-    h_branch = 2.75e-03    # equivalent internal height of branch (m)
-    d_H = 2 * w_branch * h_branch/ (w_branch + h_branch)       # Hydraulic Diameter of branch (m)
-    D = 17e-03    # main pipe diameter (m)
-    S_a = np.pi * (D/2)**2  # main pipe cross-sectional area (m^2)
-    S_b = w_branch * h_branch # branch cross-sectional area (m^2)
-    L_a = 0.5    # main pipe length (m)
-    L_b = 0.5      # Branch length (m)
-    n = 5        # number of branches
-    g = 9.81     # gravitational acceleration (m/s^2)
-
-
-def H_i(T_c_avg_K, n):
-    
-    rho = rho_func(T_c_avg_K)
-    mu = mu_func(T_c_avg_K)
-    nu = mu / rho  # kinematic viscosity    
-
-    Q = sp.symbols(f'Q1:{n+1}')
-    H = sp.symbols(f'H1:{n+1}')
-    
-    equations = []
-    
-    # Define the constant term for the La part
-    for i in range(1, n + 1):
-        # Inner sum over all Q_m / Sa
-        inner_sum = sum(Q[m] / SystemParams.S_a for m in range(n))
+    def __init__(self):
+        # Geometry parameters from the paper
+        self.n = 5  # number of branches
+        self.D = 17e-03  # main pipe diameter (m)
+        self.w_branch = 30e-03  # branch width (m)
+        self.h_branch = 2.75e-03  # branch height (m)
+        self.L_a = 0.5  # main pipe length per segment (m)
+        self.L_b = 0.5  # branch length (m)
+        self.g = 9.81  # gravitational acceleration (m/s²)
         
-        # Outer sum: both terms inside
-        outer_sum = 0
-        for k in range(1, i + 1):
-            term_a = (32 * nu * SystemParams.L_a / (SystemParams.D**2 * SystemParams.g)) * inner_sum
-            term_b = (32 * nu * SystemParams.L_b * Q[k-1]) / (SystemParams.d_H**2 * SystemParams.g * SystemParams.S_b)
-            outer_sum += term_a + term_b
-        
-        H_expr = 2 * outer_sum
-        equations.append(sp.Eq(H[i-1], H_expr))
-    
-    return equations, H, Q
+        # Calculate areas
+        self.S_a = np.pi * (self.D/2)**2  # main pipe cross-sectional area
+        self.S_b = self.w_branch * self.h_branch  # branch cross-sectional area
+        self.d_H = 2 * self.w_branch * self.h_branch / (self.w_branch + self.h_branch)  # hydraulic diameter
 
-print(H_i(300, 3))  # Example usage 
+def calculate_head_loss_A(Q, params, ν):
+    """
+    Calculate head loss for Group Set A according to Equation 30
+    
+    Q: array of flow rates in each branch [Q1, Q2, Q3, Q4, Q5]
+    params: SystemParams object
+    ν: kinematic viscosity (m²/s)
+    """
+    n = len(Q)
+    H = np.zeros(n)
+    
+    for i in range(n):  # for each branch i (0-indexed, but represents branch i+1)
+        # Friction loss in main pipes (first term in Eq 30)
+        main_pipe_loss = 0
+        for j in range(i + 1):  # sum from j=1 to i (in paper notation)
+            sum_Q_m = np.sum(Q[j:])  # ∑Qₘ from m=j to n
+            term = (32 * ν * params.L_a / (params.D**2 * params.g)) * (sum_Q_m / params.S_a)
+            main_pipe_loss += term
+        
+        main_pipe_loss *= 2  # the 2× factor in Eq 30
+        
+        # Friction loss in branch pipe (second term in Eq 30)
+        branch_pipe_loss = (32 * ν * params.L_b / 
+                           (params.d_H**2 * params.g)) * (Q[i] / params.S_b)
+        
+        H[i] = main_pipe_loss + branch_pipe_loss
+    
+    return H
+
+def solve_flow_distribution(Q_total, params, T_avg_K):
+    """
+    Solve for individual branch flows Qi given total flow Q_total
+    
+    Returns: array of flows [Q1, Q2, Q3, Q4, Q5] that satisfy H1 = H2 = ... = H5
+    """
+    # Calculate fluid properties
+    μ = mu_func(T_avg_K)  # dynamic viscosity
+    ρ = rho_func(T_avg_K)  # density
+    ν = μ / ρ  # kinematic viscosity
+    
+    def equations(Q_individual):
+        """
+        Equations to solve: All head losses should be equal
+        and sum of individual flows should equal total flow
+        """
+        Q = Q_individual[:-1]  # Q1 through Q5
+        H_ref = Q_individual[-1]  # reference head loss
+        
+        # Calculate head losses for each branch
+        H = calculate_head_loss_A(Q, params, ν)
+        
+        # Equations: H_i - H_ref = 0 for all i, and sum(Q) - Q_total = 0
+        eqs = []
+        for i in range(params.n):
+            eqs.append(H[i] - H_ref)
+        eqs.append(np.sum(Q) - Q_total)
+        
+        return eqs
+    
+    # Initial guess: equal flow distribution
+    Q_initial_guess = np.ones(params.n + 1)  # [Q1, Q2, Q3, Q4, Q5, H_ref]
+    Q_initial_guess[:-1] = Q_total / params.n  # equal flow distribution
+    Q_initial_guess[-1] = 1.0  # initial guess for head loss
+    
+    # Solve the system of equations
+    solution = fsolve(equations, Q_initial_guess)
+    
+    Q_individual = solution[:-1]  # extract Q1 through Q5
+    H_final = solution[-1]  # final head loss
+    
+    return Q_individual, H_final
+
+# Example usage:
+if __name__ == "__main__":
+    params = SystemParams()
+    Q_total = 5.0 / 60000  # Convert 5 L/min to m³/s
+    T_avg = 300  # Average temperature in K
+    
+    Q_individual, H_loss = solve_flow_distribution(Q_total, params, T_avg)
+    
+    print("Flow distribution solution:")
+    for i, Q in enumerate(Q_individual, 1):
+        print(f"Q{i} = {Q*60000:.2f} L/min")  # Convert back to L/min for readability
+    print(f"Head loss H = {H_loss:.4f} m")
+    print(f"Total flow verification: {np.sum(Q_individual)*60000:.2f} L/min")
+    
+    # Calculate bias rate β (Equation 2 in paper)
+    β = (np.max(Q_individual) - np.min(Q_individual)) / np.min(Q_individual)
+    print(f"Bias rate β = {β*100:.2f}%")
