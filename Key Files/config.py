@@ -1,11 +1,42 @@
 # config.py
 # Constants that might be shared across multiple files
+import numpy as np
+
+g = 9.81
+
+#N_heptane properties
 M_DOT = 0.05    # Mass flow rate [kg/s]
-D = 0.005       # Channel diameter [m]
 N_HEPTANE_MOLAR_MASS = 0.100205
 DITTUS_BOELTER_EXPONENT = 0.4
-C_b = 1306  #J/kgK
-m_b = 1.0 # test cell mass
-q_b = 23.4e3 #As
+
+# NIMH batter properties
+n_cell = 240
+V_cell = 1.2  # V per cell
+Capacity_cell = 6  # Ah per cell
+Enery_cell =7.2  # Wh per cell
+DC_IR = 2.5e-3  # Ohm per cell
+m_cell = 0.158 # test cell mass
+
+
+
+C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
+q_b =  Capacity_cell / 3600 #As
+V_b = V_cell * n_cell
+R_b = DC_IR * n_cell  # Ohm total battery pack
+
+
 T_b_max = 308.15  # K
 T_in = 298.13  # K
+
+# Channel properties
+n = 5  # number of branches
+D = 17e-03  # main pipe diameter (m)
+w_branch = 30e-03    # branch width (m)
+h_branch = 2.75e-03 # branch height (m)
+L_a = 0.5  # main pipe length per segment (m)
+L_b = 0.5  # branch length (m)
+L_c = 0.2   # branch outlet length (m)
+            
+S_a = np.pi * (D/2)**2
+S_b = w_branch * h_branch
+d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
