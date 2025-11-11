@@ -5,22 +5,23 @@ import numpy as np
 g = 9.81
 
 #N_heptane properties
-M_DOT = 0.05    # Mass flow rate [kg/s]
+M_DOT = 0.05    # Initial mass flow rate [kg/s]
 N_HEPTANE_MOLAR_MASS = 0.100205
 DITTUS_BOELTER_EXPONENT = 0.4
 
-# NIMH batter properties
+# NIMH battery properties
+"""Battery pack is made up of 48 L5 modules, such that one channel passes through 24 cellsc."""
 n_cell = 240
 V_cell = 1.2  # V per cell
 Capacity_cell = 6  # Ah per cell
 Enery_cell =7.2  # Wh per cell
 DC_IR = 2.5e-3  # Ohm per cell
 m_cell = 0.158 # test cell mass
+
+# Battery pack properties
 m_b = m_cell * n_cell  # kg total battery pack
-
-
 C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
-q_b =  Capacity_cell / 3600 #As
+q_b =  Capacity_cell * 3600 #As
 V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
 

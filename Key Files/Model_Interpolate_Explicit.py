@@ -87,10 +87,10 @@ def I_params(I):
     )
 
 # Generate data points
-for idx, i in enumerate(range(5, 100, 5)):
+for idx, i in enumerate(range(5, 130, 5)):
     I_0 = i
     t_total = q_b / I_0  # total time [s]
-    t_i, T_i = Tb(dTb_dt, t_total, I_params(I_0))
+    t_i, T_i = Tb(dTb_dt, I_params(I_0))
     I_runs.append(I_0)
     delta_T.append(T_i[-1] - T_b_max)
     final_temperatures.append(T_i[-1])
