@@ -17,8 +17,6 @@ Enery_cell =7.2  # Wh per cell
 DC_IR = 2.5e-3  # Ohm per cell
 m_cell = 0.158 # test cell mass
 
-
-
 C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
 q_b =  Capacity_cell / 3600 #As
 V_b = V_cell * n_cell
