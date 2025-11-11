@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from ODE import Tb, dTb_dt
-from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
+from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max, stepsize
  
 I_runs = []
 delta_T = []
@@ -18,8 +18,9 @@ def I_params(I):
         T_in,     # T_c_in [K]
         M_DOT     # m_dot_c [kg/s]
     )
+
  
-for idx, i in enumerate(range(5, 100, 5)):
+for idx, i in enumerate(range(5, 100, stepsize)):
     I_0 = i
     t_total = q_b / I_0  # total time [s]
     t_i, T_i = Tb(dTb_dt, t_total, I_params(I_0))
@@ -87,3 +88,27 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
  
+#new code to call in error script
+def get_delta_T_vs_I_interpolator():
+    # Use global scope variables created by the script's main execution flow
+    global I_array, delta_T_array
+    
+    # Check if the arrays exist and are populated
+    if 'I_array' not in globals() or I_array.size == 0:
+        # Since the existing code runs globally, this handles cases where it was 
+        # not run (e.g., if there were conditional imports, though less likely here).
+        print("Warning: Simulation data (I_array, delta_T_array) not found. Cannot create interpolator.")
+        return None
+
+    # Interpolate Delta T (y-axis data) as a function of I (x-axis data).
+    # Using 'cubic' interpolation for a smooth, predictive function, consistent 
+    # with the plotting logic above.
+    deltaT_vs_current_interp = interp1d(
+        I_array, 
+        delta_T_array, 
+        kind='cubic',
+        bounds_error=False, 
+        fill_value="extrapolate" # Allow prediction outside the simulated range
+    )
+    
+    return deltaT_vs_current_interp
