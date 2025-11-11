@@ -1,9 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
-# Define generated data
-currents = np.array([1, 2.5, 5, 10, 15, 20])
-temperatures = np.array([25.433, 27.672, 34.595, 53.698, 75.221, 97.614])
+data = pd.read_csv('Data Current against T raw.txt', 
+        header=None, 
+         sep=',',
+        names=['Current', 'Temperature'])
+    
+# Convert to numeric types, handling any conversion errors
+data['Current'] = pd.to_numeric(data['Current'], errors='coerce')
+data['Temperature'] = pd.to_numeric(data['Temperature'], errors='coerce')
+    
+# Extract arrays from the loaded data
+currents = data['Current'].values
+temperatures = data['Temperature'].values
 
 # Set maximum allowable temperature
 T_b_max = 45.0 
