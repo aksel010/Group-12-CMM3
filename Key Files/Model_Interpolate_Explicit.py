@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
-from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
+from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max, R_b, S_b
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
@@ -80,8 +80,8 @@ def I_params(I):
         m_b,      # m [kg]
         C_b,      # cp_b [J/(kg·K)]
         I,        # I [A]
-        0.1,      # R [Ω]
-        0.01,     # A_s [m²]
+        R_b,      # R [Ω]
+        S_b*10,     # A_s [m²]
         T_in,     # T_c_in [K]
         M_DOT     # m_dot_c [kg/s]
     )

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from ODE import Tb, dTb_dt
-from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max, stepsize
+from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
  
 I_runs = []
 delta_T = []
