@@ -100,7 +100,7 @@ def calculate_head_loss_only(Q_main_L_min, T_avg_K=300, D_main=17e-03, n_branche
     # Calculate total head loss
     H_total_Group_A = calculate_total_group_A_head_loss(Q_individual, params, ν)
     
-    return H_total_Group_A
+    return 2* H_total_Group_A
 
 # Simple function to get just the head loss
 def get_head_loss(Q_main_L_min):
