@@ -1,19 +1,18 @@
 import math
-from heptane_itpl import M_DOT, D, Cp_func,calculate_h
-from config import C_b, T_in, m_b, q_b
+from heptane_itpl import M_DOT, Cp_func,calculate_h
+from config import C_b, T_in, m_b, q_b, S_b,DC_IR, R_b
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
-I_0 = 50
-R_0 = 0.1
-t_total = q_b / I_0  # total time [s]
+I_0 = 5
+
 
 params_initial = (
     m_b,      # m [kg]
     C_b,      # cp_b [J/(kg·K)]
     I_0,       # I [A]
-    R_0,        # R [Ω]
+    R_b,        # R [Ω]
     0.01,     # A_s [m²]
     T_in,      # T_c_in [K]
     M_DOT    # m_dot_c [kg/s]
@@ -44,12 +43,12 @@ def dTb_dt (Tb, t, params):
     
     return dTb_dt
 
-def Tb(dTdt, t_span, params):
+def Tb(dTdt, params):
     # initial conditions
     t0 = 0
     T0 = T_in
     # total solution interval
-    t_final= t_span
+    t_final= q_b / params[2]  # total time [s]
     # step size
     H = 0.2
     # Fourth Order Runge-Kutta method
@@ -101,7 +100,7 @@ def Tb(dTdt, t_span, params):
 
 # ------------------------------------------------------
 # plot results
-t_i, T_i = Tb(dTb_dt, t_total, params_initial)
+t_i, T_i = Tb(dTb_dt, params_initial)
 plt.plot(t_i, T_i)
 plt.xlabel('t (s)')
 plt.ylabel('Temperature of the Battery $T_b$ (K)')

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
-from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
+from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max, R_b, S_b
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
@@ -80,17 +80,17 @@ def I_params(I):
         m_b,      # m [kg]
         C_b,      # cp_b [J/(kg·K)]
         I,        # I [A]
-        0.1,      # R [Ω]
-        0.01,     # A_s [m²]
+        R_b,      # R [Ω]
+        S_b*10,     # A_s [m²]
         T_in,     # T_c_in [K]
         M_DOT     # m_dot_c [kg/s]
     )
 
 # Generate data points
-for idx, i in enumerate(range(5, 100, 5)):
+for idx, i in enumerate(range(5, 130, 5)):
     I_0 = i
     t_total = q_b / I_0  # total time [s]
-    t_i, T_i = Tb(dTb_dt, t_total, I_params(I_0))
+    t_i, T_i = Tb(dTb_dt, I_params(I_0))
     I_runs.append(I_0)
     delta_T.append(T_i[-1] - T_b_max)
     final_temperatures.append(T_i[-1])
