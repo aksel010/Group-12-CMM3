@@ -1,0 +1,37 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+from ODE import Tb, dTb_dt
+from config import q_b, m_b, C_b, T_in, M_DOT, T_b_max
+
+
+def calculate_charging_performance(critical_current, battery_capacity_Ah, system_efficiency=0.85):
+
+    # Convert to C-rate
+    C_rate_critical = critical_current / battery_capacity_Ah
+    
+    # Theoretical fastest charging time
+    theoretical_time_h = 1 / C_rate_critical  # hours
+    theoretical_time_min = theoretical_time_h * 60 # minutes
+    
+    # Charging time accounting for efficiency, CV phase, safety margins
+    practical_current = critical_current * 0.8 
+    practical_C_rate = practical_current / battery_capacity_Ah
+    practical_time_h = 1.2 / practical_C_rate # hours
+    practical_time_min = practical_time_h * 60 # minutes
+    
+    # Compare with common standards
+    standard_chargers = {
+        'Slow_Charge': 0.3,  # 0.3C ~ 3-4 hours
+        'Standard_Charge': 1.0,  # 1C ~ 1 hour  
+        'Fast_Charge': 2.0,  # 2C ~ 30 minutes
+        'Ultra_Fast': 3.0   # 3C ~ 20 minutes
+    }
+    
+    return {
+        'critical_C_rate': C_rate_critical,
+        'theoretical_fastest_charge_min': theoretical_time_min,
+        'recommended_charge_time_min': practical_time_min,
+        'recommended_C_rate': practical_C_rate,
+        'industry_comparison': standard_chargers
+    }
