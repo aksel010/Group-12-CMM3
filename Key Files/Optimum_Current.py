@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
 from config import *
 from Mass_flowrate import m_dot_ss
+from RK4_Error import *
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
@@ -93,7 +94,7 @@ for idx, i in enumerate(range(1, 30, 3)):
     t_total = q_b / I_0  # total time [s]
     t_i, T_i = Tb(dTb_dt, I_params(I_0), stepsize=0.2)
     I_runs.append(I_0)
-    delta_T.append(T_i[-1] - T_b_max)
+    delta_T.append(T_i[-1] - (T_b_max-rk4_error_val))
     final_temperatures.append(T_i[-1])
 
 I_array = np.array(I_runs)

@@ -2,7 +2,6 @@
 import numpy as np
 from config import *
 from ODE import Tb , dTb_dt , params_initial
-from Optimum_Current import rmse
 
 rk4_step = H
 
@@ -12,21 +11,17 @@ T_halfstep, t_halfstep= Tb(dTb_dt, params_initial, stepsize = rk4_step / 2)
 
 def rk4_error():
     p = 4.0 #rk order
-    estimated_error = abs(T_halfstep[-1] - T_fullstep[-1]) / (2**p - 1)
+    T_halfstep_reshaped = [x for x in T_halfstep if x % 2 != 0]
+    T_fullstep_reshaped = T_fullstep[:-1]
+    T_diff = max(T_halfstep_reshaped - T_fullstep_reshaped)
+    estimated_error = abs(T_diff) / (2**p - 1)
     return estimated_error
 
-interpolation_e_val = rmse
 rk4_error_val = rk4_error()
 
-def combined_error(interpolation_error_val, rk4_error_val):
-    return (interpolation_error_val**2 + rk4_error_val**2)**0.5
-
-total_combined_error = combined_error(interpolation_e_val, rk4_error_val)
 
 print(f"Interpolation Step Size (h_interp): {H:.6e}")
 print(T_halfstep[-1])
 print(T_fullstep[-1])
 print(f"RK4 Integration Step Size (rk4_step): {rk4_step:.6e}")
-print(f"Interpolation Error: {interpolation_e_val:.6e} K")
 print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
-print(f"Total Combined Error: {total_combined_error:.6e} K")
