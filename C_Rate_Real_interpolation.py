@@ -1,36 +1,40 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from config import *
 
-df = pd.read_csv(r'Key Files\Real_Data_C_Rate.csv')
+# Load and prepare data
+df = pd.read_csv(r'Real_Data_C_Rate.csv')
 df['charging_time_hours'] = df['charging_time_min'] / 60
 df_sorted = df.sort_values('C-rate')
 
-x = df_sorted['C-rate'].values
-y = df_sorted['charging_time_hours'].values
+# Create the plot
+plt.figure(figsize=(10, 6))
+plt.plot(df_sorted['C-rate'], df_sorted['charging_time_hours'], 'bo-', markersize=4, linewidth=1, label='Real-wold Data')
 
-# Perform linear regression using numpy
-slope, intercept = np.polyfit(x, y, 1)
+# Calculate and plot theoretical values
+current_range = np.linspace(0.35, 7.2, 40)  # From 1A to 30A, 20 points
 
-# Generate line for plotting
-x_line = np.linspace(x.min(), x.max(), 300)
-y_line = slope * x_line + intercept
+c_rates = []
+t_totals = []
 
-# Calculate R²
-y_pred = slope * x + intercept
-ss_res = np.sum((y - y_pred) ** 2)
-ss_tot = np.sum((y - np.mean(y)) ** 2)
-r2 = 1 - (ss_res / ss_tot)
+for I_var in current_range:
+    c_rate = I_var / Capacity_battery
+    t_total = q_b / I_var / 3600  # Convert seconds to hours
+    c_rates.append(c_rate)
+    t_totals.append(t_total)
 
-plt.figure(figsize=(12, 8))
-plt.semilogy(x_line, y_line, 'purple', linewidth=2.5, label='Linear Regression')
-plt.semilogy(x, y, 'ko', markersize=8, label='Data Points')
+# Plot theoretical line
+plt.plot(c_rates, t_totals, 'r-', linewidth=2, label='Model')
+
+# Labels and title
 plt.xlabel('C-rate')
 plt.ylabel('Charging Time (hours)')
-plt.title(f'Linear Regression: Charging Time vs C-rate\nR² = {r2:.4f}, y = {slope:.4f}x + {intercept:.4f}')
+plt.title('Charging Time vs C-rate')
+
+# Grid and legend
 plt.grid(True, alpha=0.3)
 plt.legend()
-plt.show()
 
-print(f"Linear equation: y = {slope:.4f}x + {intercept:.4f}")
-print(f"R² score: {r2:.4f}")
+plt.tight_layout()
+plt.show()

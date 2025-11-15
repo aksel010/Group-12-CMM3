@@ -15,7 +15,7 @@ def I_params(I, m_dot_ss):
         DC_IR *24,      # R_cell * n _cell it passes through[Ω]
         A_s,     # A_s [m²]
         T_in,     # T_c_in [K]
-        m_dot_ss     # m_dot_c [kg/s]
+        get_steady_state_values()[0]     # m_dot_c [kg/s]
     )
 
 
