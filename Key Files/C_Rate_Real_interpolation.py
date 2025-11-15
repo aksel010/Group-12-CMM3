@@ -100,23 +100,30 @@ def find_root_cubic_spline():
     
     return (I_min + I_max) / 2
 
-critical_current = find_root_cubic_spline()
+def run():
+    # Find critical current via bisection
+    critical_current = find_root_cubic_spline()
+    print(f"Critical current: {critical_current:.2f} A")
 
-# Plot
-plt.figure(figsize=(10, 6))
-plt.scatter(currents, delta_T, color='blue', s=50, label='Experimental Data', zorder=5)
-I_smooth = np.linspace(currents.min(), currents.max(), 100)
-delta_T_smooth = [cubic_spline_interpolation(currents, delta_T, I) for I in I_smooth]
-plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
-plt.plot(critical_current, 0, 'ro', markersize=10, 
-         label=f'Critical Point: {critical_current:.1f} A', zorder=6)
-plt.axhline(0, color='red', linestyle='--', linewidth=1)
+    # Plot as before
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.scatter(currents, delta_T, color='blue', s=50, label='Experimental Data', zorder=5)
+    I_smooth = np.linspace(currents.min(), currents.max(), 100)
+    delta_T_smooth = [cubic_spline_interpolation(currents, delta_T, I) for I in I_smooth]
+    plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
+    plt.plot(critical_current, 0, 'ro', markersize=10, 
+            label=f'Critical Point: {critical_current:.1f} A', zorder=6)
+    plt.axhline(0, color='red', linestyle='--', linewidth=1)
 
-plt.xlabel('Current (A)')
-plt.ylabel('Delta T (°C)')
-plt.title(f'Critical vs delta T (T_max = {T_b_max}°C)')
-plt.legend()
+    plt.xlabel('Current (A)')
+    plt.ylabel('Delta T (°C)')
+    plt.title(f'Critical vs delta T (T_max = {T_b_max}°C)')
+    plt.legend()
 
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    run()
