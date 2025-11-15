@@ -2,11 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
 from config import *
-from Mass_flowrate import m_dot_ss
-from root_finders import newton, bisection
-from RK4_Error import rk4_error_val
+from Mass_flowrate import get_steady_state_values
+from RK4_Error import get_rk4_error_val
 from interpolater import *
-
 
 # Analysis
 I_runs = []
