@@ -21,6 +21,61 @@ Design cooling channel geometry (width, height, number of channels) and flow rat
 - Minimize pumping power consumption
 - Meet pressure drop constraints (ΔP ≤ 100 kPa)
 
+## Project Workflow
+The project follows these computational steps to find the optimal cooling plate design:
+
+1.  **Problem Definition**: The physical and geometric parameters of the battery cell and cooling plate are defined. This includes material properties, heat generation rates, and the range of design variables to be explored.
+2.  **Thermal Modeling**: A thermal model is executed to simulate the temperature distribution across the battery cells during a 3C fast-charging cycle.
+3.  **Fluid Dynamics**: For each cooling channel geometry and flow rate, the pressure drop and required pumping power are calculated.
+4.  **Optimization**: An optimization algorithm iterates through the design space. It uses the outputs from the thermal and fluid dynamics models to find a set of design parameters (channel dimensions, flow rate) that minimizes pumping power while keeping the maximum battery temperature below 45°C and the pressure drop under 100 kPa.
+5.  **Data Visualization**: The results from the optimization are processed and plotted to visualize the optimal design and explore the trade-offs between different parameters.
+
+## Code Structure
+
+### `Key Files/config.py`
+This file centralizes all the physical and geometric constants used across the project.
+*   **Inputs**: None.
+*   **Outputs**: Provides configuration variables (e.g., battery properties, fluid properties, geometric dimensions) that are imported by other modules.
+
+### `Key Files/main.py`
+This is the main script that drives the optimization process.
+
+
+### `C-Rate_Real_interpolation`
+This script is used to generate plots and figures from the optimization results.
+*   **Inputs**:
+*   **Outputs**:
+
+### `clear_val.py`
+Contains the functions and logic for the battery thermal model.
+*   **Inputs**:
+*   **Outputs**:
+
+### `config.py`
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### `cooling_analysis.py`
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### `Current_Error.py`
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### ``
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### `requirements.txt`
+A text file listing all the Python libraries and dependencies required to run the project.
+*   **Inputs**: None.
+*   **Outputs**: Used by the `pip` package manager to install the necessary project dependencies.
+
 ## Quick Start
 ```bash
 # Clone repository
@@ -30,7 +85,7 @@ git clone https://github.com/aksel010/GROUP-12-CMM3.git
 pip install -r requirements.txt
 
 # Run main optimization
-python src/main.py
+python "Key Files/main.py"
 
 # View results
-python src/visualization.py
+python "Key Files/visualization.py"
