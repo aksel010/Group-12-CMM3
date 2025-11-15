@@ -17,9 +17,10 @@ m_cell = 0.158 # test cell mass
 m_b = m_cell * n_cell  # kg total battery pack
 C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
 Capacity_battery = Capacity_cell
-q_b =  Capacity_cell * 3600 #As 
+q_b =  Capacity_cell * 3600  #As 
 V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
+I_0 = 7.2 # A initial current
 
 
 T_b_max = 40 + 273.13  # K 
@@ -36,6 +37,8 @@ L_c = 0.2   # branch outlet length (m)
             
 S_a = np.pi * (D/2)**2
 S_b = w_branch * h_branch
+A_s = L_b *(2*w_branch + 2*h_branch)  # wetted area of branch
+print(f"A_s: {A_s}")
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties

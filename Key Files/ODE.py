@@ -1,21 +1,20 @@
 import math
-from heptane_itpl import M_DOT, Cp_func,calculate_h
-from Mass_flowrate import calculate_steady_state_mass_flow
-from config import C_b, T_in, m_b, q_b, S_b,DC_IR, R_b
+from heptane_itpl import Cp_func,calculate_h
+from Mass_flowrate import m_dot_ss
+from config import *
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-
-I_0 = 12
 
 
 params_initial = (
     m_b,      # m [kg]
     C_b,      # cp_b [J/(kg·K)]
     I_0,       # I [A]
-    R_b,        # R [Ω]
-    0.01,     # A_s [m²]
-    T_in     # T_c_in [K]
+    DC_IR *24,        # R [Ω]
+    A_s,     # A_s [m²]
+    T_in,     # T_c_in [K]\
+    m_dot_ss     # m_dot_c [kg/s]
 )
 
 def dTb_dt (Tb, t, params):
@@ -23,19 +22,18 @@ def dTb_dt (Tb, t, params):
     Differential equation for bulk temperature Tb
     """
     # Unpack parameters
-    m, cp_b, I, R, A_s, T_c_in= params
+    m, cp_b, I, R, A_s, T_c_in, m= params
 
     # Calculate h based on current bulk temperature
-    h = calculate_h(T_c_in)
-    cp_c = Cp_func(T_c_in)
+    T_c_avg = (Tb + T_c_in) / 2
+    h = calculate_h(T_c_avg)
+    cp_c = Cp_func(T_c_avg)
     
     # Electrical heating term
     heating = I**2 * R
-
-    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(heating, T_in, M_DOT)
     
     # Cooling term denominator
-    cooling_denom = 1 + (h * A_s) / (2 * m_dot_ss * cp_c)
+    cooling_denom = 1 + (h * A_s) / (2 * m * cp_c)
     
     # Cooling term
     cooling = (h * A_s * (Tb - T_c_in)) / cooling_denom
