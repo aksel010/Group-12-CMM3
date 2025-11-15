@@ -1,114 +1,172 @@
+"""
+main.py - PHEV BTMS Optimization
+=================================
+Design Question: Determine minimal charging time by varying Current (I) 
+and mass flow-rate (ṁ) while keeping T_max ≤ 40°C
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp1d
+import time
 
-# --- Import from project files ---
+# Import from existing files (DO NOT MODIFY THEM)
 from config import q_b, m_b, C_b, T_in, T_b_max, R_b
 from ODE import Tb, dTb_dt
-from Mass_flowrate import calculate_steady_state_mass_flow
 
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
 
-def find_critical_current(current_range=range(5, 100, 5)):
-    """
-    Analyzes a range of currents to find the critical current where the final
-    battery temperature equals T_b_max.
+# Design space
+CURRENT_RANGE = np.arange(5, 80, 5)           # A
+FLOW_RATE_RANGE = np.arange(0.001, 0.05, 0.005)  # kg/s
+A_S = 0.01  # Heat transfer area [m²]
 
-    This function encapsulates the logic from 'Current against delta T.py'.
+# ============================================================================
+# CORE FUNCTIONS
+# ============================================================================
 
-    Returns:
-        tuple: (critical_current, I_array, delta_T_array)
-    """
-    print("--- Running Critical Current Analysis ---")
-    I_runs = []
-    delta_T_list = []
-
-    # Helper to package parameters for the ODE solver
-    def get_ode_params(I, m_dot_c):
-        return (m_b, C_b, I, R_b, 0.01, T_in, m_dot_c)
-
-    for i in current_range:
-        I_0 = float(i)
-        # At each step, we need to find the corresponding steady-state mass flow
-        Q_gen = I_0**2 * R_b
-        m_dot_ss, _, _ = calculate_steady_state_mass_flow(Q_gen, T_in, guess_m_dot=0.01)
-
-        if m_dot_ss <= 1e-6:
-            print(f"Warning: Could not find a valid mass flow rate for I = {I_0}A. Skipping.")
-            continue
-
-        t_total = q_b / I_0  # Total time for charging
-        params = get_ode_params(I_0, m_dot_ss)
+def simulate_point(I, m_dot):
+    """Simulate one (I, ṁ) design point. Returns dict with results."""
+    
+    # Setup parameters for ODE solver
+    params = (m_b, C_b, I, R_b, A_S, T_in, m_dot)
+    
+    try:
+        # Run thermal simulation
+        t, T = Tb(dTb_dt, params, stepsize=1.0)
         
-        _, T_profile = Tb(dTb_dt, t_total, params)
-        final_temp = T_profile[-1]
+        # Results
+        t_charge = q_b / I
+        T_max = np.max(T)
+        feasible = T_max <= T_b_max
+        
+        return {
+            'I': I,
+            'm_dot': m_dot,
+            't_charge': t_charge,
+            'T_max': T_max,
+            'T_max_C': T_max - 273.15,
+            'feasible': feasible,
+            't': t,
+            'T': T
+        }
+    except:
+        return {'I': I, 'm_dot': m_dot, 'feasible': False}
 
-        I_runs.append(I_0)
-        delta_T_list.append(final_temp - T_b_max)
-        print(f"  - Current: {I_0: >3} A, Mass Flow: {m_dot_ss:.4f} kg/s, Final Temp: {final_temp:.2f} K, ΔT: {final_temp - T_b_max:+.2f} K")
 
-    I_array = np.array(I_runs)
-    delta_T_array = np.array(delta_T_list)
-
-    if not np.any(delta_T_array <= 0) or not np.any(delta_T_array > 0):
-        print("\nAnalysis complete. The system either always overheats or never reaches the maximum temperature.")
-        return None, I_array, delta_T_array
-
-    # Interpolate to find the current where delta_T is zero
-    deltaT_vs_current = interp1d(I_array, delta_T_array, kind='cubic', bounds_error=False, fill_value="extrapolate")
+def run_optimization():
+    """Run 2D grid search over (I, ṁ)"""
     
-    # Find the root using a simple search, as fsolve can be complex here
-    from scipy.optimize import brentq
-    critical_current = brentq(deltaT_vs_current, I_array.min(), I_array.max())
+    print("="*70)
+    print(" PHEV BTMS OPTIMIZATION")
+    print("="*70)
+    print(f" Current range: {CURRENT_RANGE[0]}-{CURRENT_RANGE[-1]} A ({len(CURRENT_RANGE)} points)")
+    print(f" Flow rate range: {FLOW_RATE_RANGE[0]:.3f}-{FLOW_RATE_RANGE[-1]:.3f} kg/s ({len(FLOW_RATE_RANGE)} points)")
+    print(f" Total simulations: {len(CURRENT_RANGE) * len(FLOW_RATE_RANGE)}")
+    print(f" Constraint: T_max ≤ {T_b_max - 273.15:.0f}°C")
+    print("-"*70)
     
-    print(f"\n--- Critical Current Found: {critical_current:.2f} A ---")
-    return critical_current, I_array, delta_T_array
+    # Run all simulations
+    results = []
+    start = time.time()
+    
+    for i, I in enumerate(CURRENT_RANGE):
+        print(f"Progress: {i+1}/{len(CURRENT_RANGE)} currents... ", end='\r')
+        for m_dot in FLOW_RATE_RANGE:
+            results.append(simulate_point(I, m_dot))
+    
+    elapsed = time.time() - start
+    print(f"\nCompleted in {elapsed:.1f}s")
+    
+    # Find optimal
+    feasible = [r for r in results if r['feasible']]
+    
+    if not feasible:
+        print("\n⚠️  NO FEASIBLE SOLUTIONS - Increase flow rate or reduce current")
+        return results, None
+    
+    optimal = min(feasible, key=lambda x: x['t_charge'])
+    
+    # Print results
+    print("\n" + "="*70)
+    print(" OPTIMAL SOLUTION")
+    print("="*70)
+    print(f" ✓ Optimal Current:              {optimal['I']:.1f} A")
+    print(f" ✓ Optimal Flow Rate:            {optimal['m_dot']:.4f} kg/s")
+    print(f" ✓ Minimum Charging Time:        {optimal['t_charge']:.0f} s ({optimal['t_charge']/60:.1f} min)")
+    print(f" ✓ Maximum Temperature:          {optimal['T_max_C']:.2f}°C")
+    print(f" ✓ Temperature Margin:           {T_b_max - optimal['T_max']:.2f} K")
+    print(f" ✓ Feasible Solutions:           {len(feasible)}/{len(results)}")
+    print("="*70)
+    
+    return results, optimal
 
 
-def run_final_simulation(critical_current):
-    """
-    Runs the final ODE simulation at the determined critical current and
-    plots the results.
-    """
-    print("\n--- Running Final Simulation at Critical Current ---")
-    Q_gen = critical_current**2 * R_b
-    m_dot_final, T_c_avg, h_final = calculate_steady_state_mass_flow(Q_gen, T_in, guess_m_dot=0.01)
+def plot_results(results, optimal):
+    """Create visualization"""
     
-    t_total = q_b / critical_current
-    params = (m_b, C_b, critical_current, R_b, 0.01, T_in, m_dot_final)
+    # Extract data
+    feasible = [r for r in results if r.get('feasible', False)]
+    if not feasible:
+        return
     
-    t_sim, T_sim = Tb(dTb_dt, t_total, params)
+    I = np.array([r['I'] for r in feasible])
+    m = np.array([r['m_dot'] for r in feasible])
+    t = np.array([r['t_charge']/60 for r in feasible])
+    T = np.array([r['T_max_C'] for r in feasible])
     
-    # --- Reporting ---
-    print("\n" + "="*50)
-    print("      FINAL OPTIMIZED SYSTEM RESULTS")
-    print("="*50)
-    print(f"Critical Charging Current: {critical_current:.2f} A")
-    print(f"Steady-State Mass Flow Rate: {m_dot_final:.4f} kg/s")
-    print(f"Average Coolant Temperature: {T_c_avg:.2f} K")
-    print(f"Heat Transfer Coefficient (h): {h_final:.2f} W/(m²·K)")
-    print(f"Final Battery Temperature: {T_sim[-1]:.2f} K (Target: {T_b_max:.2f} K)")
-    print(f"Total Simulation Time: {t_total:.1f} s")
-    print("="*50)
-
-    # --- Plotting ---
-    plt.figure(figsize=(10, 6))
-    plt.plot(t_sim, T_sim, label='Battery Temperature (Tb)', color='navy')
-    plt.axhline(T_b_max, color='red', linestyle='--', label=f'Max Safe Temp ({T_b_max} K)')
-    plt.title(f'Battery Temperature During Charging @ {critical_current:.1f} A')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Temperature (K)')
-    plt.legend()
-    plt.grid(True, linestyle='--', alpha=0.6)
+    # Create plots
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    
+    # Plot 1: Temperature map
+    sc1 = axes[0].scatter(I, m, c=T, cmap='RdYlBu_r', s=100, edgecolors='k', linewidth=0.5)
+    axes[0].scatter(optimal['I'], optimal['m_dot'], marker='★', s=500, 
+                    c='gold', edgecolors='black', linewidth=2, zorder=10)
+    axes[0].axhline(T_b_max - 273.15, color='red', ls='--', lw=2)
+    axes[0].set_xlabel('Current [A]', fontweight='bold')
+    axes[0].set_ylabel('Flow Rate [kg/s]', fontweight='bold')
+    axes[0].set_title('Max Temperature [°C]', fontweight='bold')
+    axes[0].grid(True, alpha=0.3)
+    plt.colorbar(sc1, ax=axes[0], label='T_max [°C]')
+    
+    # Plot 2: Charging time map
+    sc2 = axes[1].scatter(I, m, c=t, cmap='viridis', s=100, edgecolors='k', linewidth=0.5)
+    axes[1].scatter(optimal['I'], optimal['m_dot'], marker='★', s=500, 
+                    c='gold', edgecolors='black', linewidth=2, zorder=10)
+    axes[1].set_xlabel('Current [A]', fontweight='bold')
+    axes[1].set_ylabel('Flow Rate [kg/s]', fontweight='bold')
+    axes[1].set_title('Charging Time [min]', fontweight='bold')
+    axes[1].grid(True, alpha=0.3)
+    plt.colorbar(sc2, ax=axes[1], label='Time [min]')
+    
+    # Plot 3: Optimal temperature profile
+    axes[2].plot(optimal['t']/60, optimal['T'] - 273.15, 'b-', linewidth=2)
+    axes[2].axhline(T_b_max - 273.15, color='red', ls='--', lw=2, label='T_max limit')
+    axes[2].fill_between(optimal['t']/60, T_b_max - 273.15, 50, alpha=0.2, color='red')
+    axes[2].set_xlabel('Time [min]', fontweight='bold')
+    axes[2].set_ylabel('Temperature [°C]', fontweight='bold')
+    axes[2].set_title(f'Optimal Solution (I={optimal["I"]:.1f}A)', fontweight='bold')
+    axes[2].grid(True, alpha=0.3)
+    axes[2].legend()
+    
     plt.tight_layout()
+    plt.savefig('BTMS_optimization_results.png', dpi=300, bbox_inches='tight')
+    print("\n✓ Plots saved to 'BTMS_optimization_results.png'")
     plt.show()
 
 
-if __name__ == "__main__":
-    # 1. Find the critical operating current
-    crit_I, _, _ = find_critical_current()
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
 
-    # 2. Run the final simulation and report results if a critical current was found
-    if crit_I is not None:
-        run_final_simulation(crit_I)
-    else:
-        print("\nCould not determine a critical current within the tested range.")
+if __name__ == "__main__":
+    
+    # Run optimization
+    results, optimal = run_optimization()
+    
+    # Plot results
+    if optimal:
+        plot_results(results, optimal)
+    
+    print("\n✓ Optimization complete!\n")
