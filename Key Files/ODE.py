@@ -1,11 +1,12 @@
 import math
 from heptane_itpl import M_DOT, Cp_func,calculate_h
+from Mass_flowrate import calculate_steady_state_mass_flow
 from config import C_b, T_in, m_b, q_b, S_b,DC_IR, R_b
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
-I_0 = 5
+I_0 = 12
 
 
 params_initial = (
@@ -14,8 +15,7 @@ params_initial = (
     I_0,       # I [A]
     R_b,        # R [Ω]
     0.01,     # A_s [m²]
-    T_in,      # T_c_in [K]
-    M_DOT    # m_dot_c [kg/s]
+    T_in     # T_c_in [K]
 )
 
 def dTb_dt (Tb, t, params):
@@ -23,34 +23,36 @@ def dTb_dt (Tb, t, params):
     Differential equation for bulk temperature Tb
     """
     # Unpack parameters
-    m, cp_b, I, R, A_s, T_c_in, m_dot_c= params
+    m, cp_b, I, R, A_s, T_c_in= params
 
     # Calculate h based on current bulk temperature
     h = calculate_h(T_c_in)
     cp_c = Cp_func(T_c_in)
     
     # Electrical heating term
-    electrical_heating = I**2 * R
+    heating = I**2 * R
+
+    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(heating, T_in, M_DOT)
     
     # Cooling term denominator
-    cooling_denom = 1 + (h * A_s) / (2 * m_dot_c * cp_c)
+    cooling_denom = 1 + (h * A_s) / (2 * m_dot_ss * cp_c)
     
     # Cooling term
     cooling = (h * A_s * (Tb - T_c_in)) / cooling_denom
     
     # Rate of change of temperature
-    dTb_dt = (electrical_heating - cooling) / (m * cp_b)
+    dTb_dt = (heating - cooling) / (m * cp_b)
     
     return dTb_dt
 
-def Tb(dTdt, params):
+def Tb(dTdt, params,stepsize):
     # initial conditions
     t0 = 0
     T0 = T_in
     # total solution interval
     t_final= q_b / params[2]  # total time [s]
     # step size
-    H = 0.2
+    H = stepsize
     # Fourth Order Runge-Kutta method
 
     # number of steps
@@ -100,7 +102,7 @@ def Tb(dTdt, params):
 
 # ------------------------------------------------------
 # plot results
-t_i, T_i = Tb(dTb_dt, params_initial)
+t_i, T_i = Tb(dTb_dt, params_initial,stepsize=0.2)
 plt.plot(t_i, T_i)
 plt.xlabel('t (s)')
 plt.ylabel('Temperature of the Battery $T_b$ (K)')
