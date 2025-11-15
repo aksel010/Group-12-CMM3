@@ -1,6 +1,6 @@
 import math
 from heptane_itpl import Cp_func,calculate_h
-from Mass_flowrate import m_dot_ss
+from Mass_flowrate import get_steady_state_values
 from config import *
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -14,7 +14,7 @@ params_initial = (
     DC_IR *24,        # R [Ω]
     A_s,     # A_s [m²]
     T_in,     # T_c_in [K]\
-    m_dot_ss     # m_dot_c [kg/s]
+    get_steady_state_values()[0]     # m_dot_c [kg/s]
 )
 
 def dTb_dt (Tb, t, params):
