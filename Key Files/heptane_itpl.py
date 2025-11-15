@@ -64,8 +64,8 @@ def calculate_h(T: float | np.ndarray) -> float | np.ndarray:
     
     return h
 
-#AI plotting (ommitted from script calling)
-if __name__ == '__main__':
+#plotting
+def run():
     
     print(f"System Constant C_Re = {C_RE:.2f} kg/(m·s)\n")
     test_T = np.linspace(T_data.min(), T_data.max(), 100)
@@ -118,3 +118,6 @@ if __name__ == '__main__':
     print(f"Dynamic Viscosity (mu): {mu_test:.6f} Pa·s")
     print(f"Reynolds Number (Re): {Re_test:.0f}")
     print(f"Heat Transfer Coefficient (h): {h_test:.2f} W/(m^2·K)")
+
+if __name__ == "__main__":
+    run()
