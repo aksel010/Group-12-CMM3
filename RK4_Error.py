@@ -4,6 +4,8 @@ from config import *
 from ODE import Tb , dTb_dt , params_initial
 
 rk4_step = H
+T_fullstep, t_fullstep = Tb(dTb_dt, params_initial, stepsize = rk4_step)
+T_halfstep, t_halfstep= Tb(dTb_dt, params_initial, stepsize = rk4_step / 2)
 
 #RK4 ERROR ESTIMATION
 def rk4_error():
@@ -19,7 +21,7 @@ def get_rk4_error_val():
     return rk4_error()
 
 def run():
-        rk4_error_val = get_rk4_error_val()
+    rk4_error_val = get_rk4_error_val()
     print(f"Interpolation Step Size (h_interp): {H:.6e}")
     print(f"RK4 Integration Step Size (rk4_step): {rk4_step:.6e}")
     print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
