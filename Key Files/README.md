@@ -32,12 +32,12 @@ The project follows these computational steps to find the optimal cooling plate 
 
 ## Code Structure
 
-### `Key Files/config.py`
+### `config.py`
 This file centralizes all the physical and geometric constants used across the project.
 *   **Inputs**: None.
 *   **Outputs**: Provides configuration variables (e.g., battery properties, fluid properties, geometric dimensions) that are imported by other modules.
 
-### `Key Files/main.py`
+### `main.py`
 This is the main script that drives the optimization process.
 
 
@@ -51,11 +51,6 @@ Contains the functions and logic for the battery thermal model.
 *   **Inputs**:
 *   **Outputs**:
 
-### `config.py`
-Contains the functions for calculating fluid dynamic properties.
-*   **Inputs**:
-*   **Outputs**:Files/config.py`.
-
 ### `cooling_analysis.py`
 Contains the functions for calculating fluid dynamic properties.
 *   **Inputs**:
@@ -66,7 +61,22 @@ Contains the functions for calculating fluid dynamic properties.
 *   **Inputs**:
 *   **Outputs**:Files/config.py`.
 
-### ``
+### `heptane_itpl.py`
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### `Mass_flowrate.py`
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### `ODE.py`
+Contains the functions for calculating fluid dynamic properties.
+*   **Inputs**:
+*   **Outputs**:Files/config.py`.
+
+### `Optimum_Current.py`
 Contains the functions for calculating fluid dynamic properties.
 *   **Inputs**:
 *   **Outputs**:Files/config.py`.
