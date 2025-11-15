@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
 from config import *
 from Mass_flowrate import m_dot_ss
+from root_finders import newton, bisection
+from RK4_Error import rk4_error_val
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
@@ -157,9 +159,19 @@ def find_root_cubic_spline():
     
     return (I_min + I_max) / 2
 
+I_min = I_array.min()
+I_max = I_array.max()
+tolerance = 0.01
+
 #root finding validation with NR
 
-critical_current_bisection = find_root_cubic_spline()
+critical_current_bisection = bisection(
+    f=current_profile, 
+    a= I_min, 
+    b= I_max, 
+    tolerance= tolerance
+)
+
 print(f"Bisection result: {critical_current_bisection}") # Added print for bisection result
 
 def f_to_test(I):

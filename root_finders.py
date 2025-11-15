@@ -28,3 +28,27 @@ def newton(f, Df, x0, epsilon, max_iter, args=()):
             
     print('Exceeded maximum iterations. No solution found.')
     return None
+
+def bisection(f, a, b, tolerance, max_iter=100):
+
+    if f(a) * f(b) >= 0:
+        raise ValueError("Bisection method requires f(a) and f(b) to have opposite signs.")
+    
+    a_i = a
+    b_i = b
+    
+    for _ in range(max_iter):
+        c_i = (a_i + b_i) / 2
+        f_c = f(c_i)
+        
+        if abs(f_c) < tolerance or (b_i - a_i) / 2 < tolerance:
+            return c_i
+            
+        f_a = f(a_i) # Re-evaluate f(a_i)
+        
+        if f_a * f_c < 0:
+            b_i = c_i
+        else:
+            a_i = c_i
+            
+    return (a_i + b_i) / 2 # Return best estimate after max_iter
