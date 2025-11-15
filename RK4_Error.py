@@ -6,9 +6,6 @@ from ODE import Tb , dTb_dt , params_initial
 rk4_step = H
 
 #RK4 ERROR ESTIMATION
-T_fullstep, t_fullstep = Tb(dTb_dt, params_initial, stepsize = rk4_step)
-T_halfstep, t_halfstep= Tb(dTb_dt, params_initial, stepsize = rk4_step / 2)
-
 def rk4_error():
     p = 4.0 #rk order
     T_halfstep_reshaped = [x for x in T_halfstep if x % 2 != 0]
@@ -17,9 +14,12 @@ def rk4_error():
     estimated_error = abs(T_diff) / (2**p - 1)
     return estimated_error
 
-rk4_error_val = rk4_error()
+def get_rk4_error_val():
+    """Calculate and return RK4 error value on demand"""
+    return rk4_error()
 
 def run():
+        rk4_error_val = get_rk4_error_val()
     print(f"Interpolation Step Size (h_interp): {H:.6e}")
     print(f"RK4 Integration Step Size (rk4_step): {rk4_step:.6e}")
     print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
