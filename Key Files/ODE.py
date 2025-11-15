@@ -50,11 +50,10 @@ def Tb(dTdt, params,stepsize):
     # total solution interval
     t_final= q_b / params[2]  # total time [s]
     # step size
-    H = stepsize
     # Fourth Order Runge-Kutta method
 
     # number of steps
-    n_step = math.ceil(t_final/H)
+    n_step = math.ceil(t_final/stepsize)
 
     # Definition of arrays to store the solution
     T_rk = np.zeros(n_step+1)
@@ -67,7 +66,7 @@ def Tb(dTdt, params,stepsize):
 
     # Populate the x array
     for i in range(n_step):
-        t_rk[i+1]  = t_rk[i]  + H
+        t_rk[i+1]  = t_rk[i]  + stepsize
 
     # Apply RK method n_step times
     for i in range(n_step):
@@ -77,32 +76,33 @@ def Tb(dTdt, params,stepsize):
         T_dummy = T_rk[i]
         k1 =  dTdt(T_dummy,t_dummy, params)
         
-        t_dummy = t_rk[i]+H/2
-        T_dummy = T_rk[i] + k1 * H/2
+        t_dummy = t_rk[i]+stepsize/2
+        T_dummy = T_rk[i] + k1 * stepsize/2
         k2 =  dTdt(T_dummy,t_dummy, params)
 
-        t_dummy = t_rk[i]+H/2
-        T_dummy = T_rk[i] + k2 * H/2
+        t_dummy = t_rk[i]+stepsize/2
+        T_dummy = T_rk[i] + k2 * stepsize/2
         k3 =  dTdt(T_dummy,t_dummy, params)
 
-        t_dummy = t_rk[i]+H
-        T_dummy = T_rk[i] + k3 * H
+        t_dummy = t_rk[i]+stepsize
+        T_dummy = T_rk[i] + k3 * stepsize
         k4 =  dTdt(T_dummy,t_dummy, params)
 
         # compute the slope as weighted average of four slopes
         slope = 1/6 * k1 + 2/6 * k2 + 2/6 * k3 + 1/6 * k4 
 
         # use the RK method
-        T_rk[i+1] = T_rk[i] + H * slope  
+        T_rk[i+1] = T_rk[i] + stepsize * slope  
 
     return t_rk, T_rk
     # ------------------------------------------------------
 
 # ------------------------------------------------------
 # plot results
-t_i, T_i = Tb(dTb_dt, params_initial,stepsize=0.2)
-plt.plot(t_i, T_i)
-plt.xlabel('t (s)')
-plt.ylabel('Temperature of the Battery $T_b$ (K)')
-plt.show()
+if __name__ == "__main__":
+    t_i, T_i = Tb(dTb_dt, params_initial,stepsize=H)
+    plt.plot(t_i, T_i)
+    plt.xlabel('t (s)')
+    plt.ylabel('Temperature of the Battery $T_b$ (K)')
+    plt.show()
 # ------------------------------------------------------

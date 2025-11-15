@@ -132,25 +132,26 @@ delta_T_interpolated = np.array([current_profile(I) for I in I_array])
 residuals = delta_T_interpolated - delta_T_array
 rmse = np.sqrt(np.mean(residuals**2))
 
-# Plot
-plt.figure(figsize=(10, 6))
-plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
-I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
-# This part of the plot uses the old list comprehension style, which is fine
-delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth] 
+if __name__ == '__main__':
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
+    I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
+    # This part of the plot uses the old list comprehension style, which is fine
+    delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth] 
 
-plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
-plt.plot(critical_current, 0, 'ro', markersize=10, 
-          label=f'Critical Point: {critical_current:.1f} A', zorder=6)
-plt.axhline(0, color='red', linestyle='--', linewidth=1)
+    plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
+    plt.plot(critical_current, 0, 'ro', markersize=10, 
+            label=f'Critical Point: {critical_current:.1f} A', zorder=6)
+    plt.axhline(0, color='red', linestyle='--', linewidth=1)
 
-plt.xlabel('Current (A)')
-plt.ylabel('Delta T (K)')
-plt.title('Critical Current Analysis - Cubic Spline Interpolation')
-plt.legend()
+    plt.xlabel('Current (A)')
+    plt.ylabel('Delta T (K)')
+    plt.title('Critical Current Analysis - Cubic Spline Interpolation')
+    plt.legend()
 
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
 
 print(f"Critical Current: {critical_current:.2f} A")
