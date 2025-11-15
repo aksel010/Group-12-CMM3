@@ -21,8 +21,8 @@ V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
 
 
-T_b_max = 308.15  # K
-T_in = 298.13  # K
+T_b_max = 40 + 273.13  # K 
+T_in = 15 + 273.13  # K
 
 # Channel properties
 n = 5  # number of branches
