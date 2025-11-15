@@ -38,7 +38,6 @@ L_c = 0.2   # branch outlet length (m)
 S_a = np.pi * (D/2)**2
 S_b = w_branch * h_branch
 A_s = L_b *(2*w_branch + 2*h_branch)  # wetted area of branch
-print(f"A_s: {A_s}")
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties
@@ -51,4 +50,4 @@ C_RE = 4 * M_DOT / (np.pi * D) # derived constant Reynlds no.
 flowrate_min = 5.0 /60000 # m^3/s
 
 #RK4 stepsize
-H = 10
+H = 30

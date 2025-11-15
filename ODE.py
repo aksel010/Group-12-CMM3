@@ -1,6 +1,6 @@
 import math
 from heptane_itpl import Cp_func,calculate_h
-from Mass_flowrate import m_dot_ss
+from Mass_flowrate import get_steady_state_values
 from config import *
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -14,7 +14,7 @@ params_initial = (
     DC_IR *24,        # R [Ω]
     A_s,     # A_s [m²]
     T_in,     # T_c_in [K]\
-    m_dot_ss     # m_dot_c [kg/s]
+    get_steady_state_values()[0]     # m_dot_c [kg/s]
 )
 
 def dTb_dt (Tb, t, params):
@@ -97,15 +97,62 @@ def Tb(dTdt, params,stepsize):
     return t_rk, T_rk
     # ------------------------------------------------------
 
+# scipy solve_ivp method
+
+def Tb_scipy(dTdt, params):
+    t0 = 0
+    T0 = T_in
+    t_final = q_b / params[2]
+    # solve_ivp call
+    sol = solve_ivp(
+        # FIX: Accept optional arguments (*_) from solve_ivp 
+        # but only use t and T, as 'params' is hardcoded inside the lambda body.
+        fun=lambda t, T, *_: dTdt(T, t, params),  
+        
+        t_span=[t0, t_final],
+        y0=[T0],
+        # Remove the 'args' tuple since 'params' is already passed explicitly in the lambda.
+        # If you keep 'args', the lambda needs another fix (see alternative below).
+        method='LSODA', 
+        dense_output=True, 
+        rtol=1e-6,        
+        atol=1e-8         
+    )
+    
+    # Create an array of time points for plotting (e.g., 100 points)
+    t_sol = np.linspace(t0, t_final, 100)
+    
+    # Use the dense output to get the solution at these time points
+    T_sol = sol.sol(t_sol)[0] 
+    
+    return t_sol, T_sol
+
 # ------------------------------------------------------
 # plot results
 def run():
-    t_i, T_i = Tb(dTb_dt, params_initial,stepsize=H)
-    plt.plot(t_i, T_i)
+    # 1. Custom RK4 Solution (Your existing method)
+    t_rk, T_rk = Tb(dTb_dt, params_initial, stepsize=H)
+    
+    # 2. SciPy Validation Solution (The new method)
+    t_scipy, T_scipy = Tb_scipy(dTb_dt, params_initial)
+
+    plt.figure(figsize=(10, 6))
+
+    # Plot custom RK4
+    plt.plot(t_rk, T_rk, label=f'Custom RK4 (h={H}s)', color='blue', linestyle='--')
+    
+    # Plot SciPy Solution
+    plt.plot(t_scipy, T_scipy, label='SciPy solve_ivp (LSODA)', color='red', linewidth=3, alpha=0.6)
+
     plt.xlabel('t (s)')
     plt.ylabel('Temperature of the Battery $T_b$ (K)')
+    plt.title('ODE Solution Validation')
+    plt.legend()
+    plt.grid(True)
     plt.show()
 
 if __name__ == "__main__":
+    # Ensure H is defined in your config.py or elsewhere for stepsize
+    # Example: H = 0.2 
     run()
 # ------------------------------------------------------
