@@ -5,101 +5,7 @@ from config import *
 from Mass_flowrate import m_dot_ss
 from root_finders import newton, bisection
 from RK4_Error import rk4_error_val
-
-# Cubic Spline Interpolation
-def cubic_spline_coefficients(x_data, y_data):
-    global SPLINE_COEFFICIENTS, I_ARRAY
-    n = len(x_data) - 1
-    I_ARRAY = np.array(x_data)
-
-    # Step 1: Calculate h (interval widths)
-    H = [x_data[i+1] - x_data[i] for i in range(n)]
-    
-    # Step 2: Set up tridiagonal system for second derivatives
-    A = np.zeros((n+1, n+1))
-    b = np.zeros(n+1)
-    
-    # Main diagonal
-    for i in range(1, n):
-        A[i, i] = 2 * (H[i-1] + H[i])
-    
-    # Upper diagonal
-    for i in range(1, n):
-        A[i, i+1] = H[i]
-    
-    # Lower diagonal 
-    for i in range(1, n):
-        A[i, i-1] = H[i-1]
-    
-    # Boundary conditions (natural spline)
-    A[0, 0] = 1
-    A[n, n] = 1
-    
-    # Right-hand side
-    for i in range(1, n):
-        b[i] = 6 * ((y_data[i+1] - y_data[i]) / H[i] - (y_data[i] - y_data[i-1]) / H[i-1])
-    
-    # Step 3: Solve for second derivatives M
-    M = np.linalg.solve(A, b)
-    
-    # Step 4: Calculate coefficients for each segment
-    coefficients = []
-    SPLINE_COEFFICIENTS = coefficients
-    for i in range(n):
-        a = y_data[i]
-        b = (y_data[i+1] - y_data[i]) / H[i] - H[i] * (2 * M[i] + M[i+1]) / 6
-        c = M[i] / 2
-        d = (M[i+1] - M[i]) / (6 * H[i])
-        coefficients.append((a, b, c, d, x_data[i], x_data[i+1]))
-    
-    return coefficients
-
-def cubic_spline_interpolation(x_data, y_data, x_query):
-    # Ensure coefficients are calculated before interpolating
-    if SPLINE_COEFFICIENTS is None:
-        cubic_spline_coefficients(x_data, y_data)
-    
-    coefficients = SPLINE_COEFFICIENTS
-    
-    # Find the correct segment
-    for coeff in coefficients:
-        a, b, c, d, x_start, x_end = coeff
-        if x_start <= x_query <= x_end + 1e-9:
-            dx = x_query - x_start
-            return a + b * dx + c * dx**2 + d * dx**3
-    
-    # Extrapolation handling
-    if x_query < x_data[0]:
-        coeff = coefficients[0]
-        a, b, c, d, x_start, x_end = coeff
-        dx = x_query - x_start
-        return a + b * dx + c * dx**2 + d * dx**3
-    else:
-        coeff = coefficients[-1]
-        a, b, c, d, x_start, x_end = coeff
-        dx = x_query - x_start
-        return a + b * dx + c * dx**2 + d * dx**3
-    
-def cubic_spline_derivative(x_query):
-
-    if SPLINE_COEFFICIENTS is None:
-         raise RuntimeError("Cubic spline coefficients must be calculated first.")
-         
-    coefficients = SPLINE_COEFFICIENTS
-    x_data = I_ARRAY 
-    
-    for coeff in coefficients:
-        a, b, c, d, x_start, x_end = coeff
-        if x_start <= x_query <= x_end + 1e-9: 
-            dx = x_query - x_start
-            return b + 2 * c * dx + 3 * d * dx**2
-            
-    # Extrapolation handling
-    coeff = coefficients[0] if x_query < x_data[0] else coefficients[-1]
-    a, b, c, d, x_start, x_end = coeff
-    dx = x_query - x_start
-    # Use the derivative of the boundary segment
-    return b + 2 * c * dx + 3 * d * dx**2
+from interpolater import *
 
 
 # Analysis
@@ -130,11 +36,19 @@ for idx, i in enumerate(range(1, 30, 3)):
 I_array = np.array(I_runs)
 delta_T_array = np.array(delta_T)
 
-cubic_spline_coefficients(I_array, delta_T_array)
-
 def current_profile(I_query):
-    """Returns the interpolated Delta T (T_final - T_b_max) for a given current I_query."""
+    """Returns the interpolated Delta T using cubic spline."""
     return cubic_spline_interpolation(I_array, delta_T_array, I_query)
+
+def current_profile_derivative(I_query):
+    """Returns the derivative of the interpolated Delta T using cubic spline."""
+    return cubic_spline_derivative(I_array, delta_T_array, I_query)
+
+# Compare both methods
+comparison = compare_interpolation_accuracy(I_array, delta_T_array)
+
+print(f"Spline RMSE: {comparison['spline_rmse']:.6f}")
+print(f"Newton Divided Diff RMSE: {comparison['newton_rmse']:.6f}")
 
 # Find critical current
 def find_root_cubic_spline():
@@ -178,7 +92,7 @@ def f_to_test(I):
     return current_profile(I)
     
 def Df_to_test(I): 
-    return cubic_spline_derivative(I)
+    return current_profile_derivative(I)
 
 # Use the bisection result as a good initial guess for the Newton-Raphson method
 critical_current_newton = newton(f_to_test, Df_to_test, x0=critical_current_bisection, epsilon=0.01, max_iter=50) 
