@@ -87,6 +87,9 @@ def get_head_loss(Q_main):
     return calculate_head_loss_only(Q_main)
 
 # Example usage
-if __name__ == "__main__":
+def run():
     head_loss = calculate_head_loss_only(flowrate_min)
     print(f"Total Group A head loss: {head_loss:.6f} m")
+    
+if __name__ == "__main__":
+    run()

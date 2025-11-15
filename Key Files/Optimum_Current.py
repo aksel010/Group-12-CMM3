@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
 from config import *
 from Mass_flowrate import m_dot_ss
-from root_finders import newton
-
-SPLINE_COEFFICIENTS = None
-I_ARRAY = None
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
@@ -126,7 +122,7 @@ for idx, i in enumerate(range(1, 30, 3)):
     t_total = q_b / I_0  # total time [s]
     t_i, T_i = Tb(dTb_dt, I_params(I_0), stepsize=0.2)
     I_runs.append(I_0)
-    delta_T.append(T_i[-1] - T_b_max)
+    delta_T.append(T_i[-1] - (T_b_max-rk4_error_val))
     final_temperatures.append(T_i[-1])
 
 I_array = np.array(I_runs)
@@ -182,7 +178,7 @@ delta_T_interpolated = np.array([current_profile(I) for I in I_array])
 residuals = delta_T_interpolated - delta_T_array
 rmse = np.sqrt(np.mean(residuals**2))
 
-if __name__ == '__main__':
+def run():
     # Plot
     plt.figure(figsize=(10, 6))
     plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
@@ -204,5 +200,8 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.show()
 
-print(f"Critical Current: {critical_current:.2f} A")
-print(f"Newton result: {critical_current_newton}")
+    print(f"Critical Current: {critical_current:.2f} A")
+    print(f"Newton result: {critical_current_newton}")
+
+if __name__ == "__main__":
+    run()

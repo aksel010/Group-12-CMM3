@@ -100,9 +100,7 @@ m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, T_c_in_K, M_DOT
     )
 
-# FOR TESTING ONLY
-if __name__ == '__main__':
-
+def run():
     print("\n" + "="*50)
     print("      SINGLE-CELL STEADY-STATE FLOW & THERMAL SOLVER")
     print("="*50)
@@ -135,3 +133,6 @@ if __name__ == '__main__':
     plt.ylabel('Pressure Balance Residual (Pa)')
     plt.title('Pressure Balance Residual vs Mass Flow Rate')
     plt.show()
+
+if __name__ == "__main__":
+    run()

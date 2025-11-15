@@ -99,10 +99,13 @@ def Tb(dTdt, params,stepsize):
 
 # ------------------------------------------------------
 # plot results
-if __name__ == "__main__":
+def run():
     t_i, T_i = Tb(dTb_dt, params_initial,stepsize=H)
     plt.plot(t_i, T_i)
     plt.xlabel('t (s)')
     plt.ylabel('Temperature of the Battery $T_b$ (K)')
     plt.show()
+
+if __name__ == "__main__":
+    run()
 # ------------------------------------------------------
