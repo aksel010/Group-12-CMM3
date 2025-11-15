@@ -19,9 +19,12 @@ def rk4_error():
 
 rk4_error_val = rk4_error()
 
+def run():
+    print(f"Interpolation Step Size (h_interp): {H:.6e}")
+    print(T_halfstep[-1])
+    print(T_fullstep[-1])
+    print(f"RK4 Integration Step Size (rk4_step): {rk4_step:.6e}")
+    print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
 
-print(f"Interpolation Step Size (h_interp): {H:.6e}")
-print(T_halfstep[-1])
-print(T_fullstep[-1])
-print(f"RK4 Integration Step Size (rk4_step): {rk4_step:.6e}")
-print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
+if __name__ == "__main__":
+    run()

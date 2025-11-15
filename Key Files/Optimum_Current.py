@@ -133,7 +133,7 @@ delta_T_interpolated = np.array([current_profile(I) for I in I_array])
 residuals = delta_T_interpolated - delta_T_array
 rmse = np.sqrt(np.mean(residuals**2))
 
-if __name__ == '__main__':
+def run():
     # Plot
     plt.figure(figsize=(10, 6))
     plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
@@ -154,5 +154,8 @@ if __name__ == '__main__':
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
+    
+    print(f"Critical Current: {critical_current:.2f} A")
 
-print(f"Critical Current: {critical_current:.2f} A")
+if __name__ == "__main__":
+    run()

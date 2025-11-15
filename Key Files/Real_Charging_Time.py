@@ -20,7 +20,7 @@ def calculate_charging_performance(critical_current, battery_capacity_Ah, effici
     }
 
 # Calculate and display results
-if __name__ == "__main__":
+def run():
     results = calculate_charging_performance(critical_current, Capacity_cell)
     
     print("===Charging Performance===")
@@ -29,3 +29,6 @@ if __name__ == "__main__":
     print(f"Recommended C-rate: {results['recommended_C_rate']} C ({results['recommended_charge_min']} min)")
     
     print("\nIndustry Standards: 0.3C (slow), 1C (standard), 2C (fast), 3C (ultra-fast)")
+
+if __name__ == "__main__":
+    run()
