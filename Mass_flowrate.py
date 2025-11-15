@@ -6,7 +6,7 @@ from config import *
 from heptane_itpl import calculate_h, Cp_func, rho_func
 from root_finders import newton
 
-I_sq_R = 0.0  # Will be set by calculate_steady_state_mass_flow
+Q_heat = 0.0  # Will be set by calculate_steady_state_mass_flow
 
 # HYDRAULIC BALANCE FUNCTIONS
 
@@ -31,7 +31,7 @@ def pressure_balance_couple(m_dot):
     # Use Cp at inlet temperature for bulk energy calculation (simplification)
     Cp_c_in = Cp_func(T_in)
     # calculate outlet temp with energy balance
-    T_c_out_K = T_in + I_sq_R / (m_dot * Cp_c_in)
+    T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
     # average Coolant Temperature
     T_c_avg_K = (T_in + T_c_out_K) / 2
     
@@ -62,8 +62,8 @@ def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
     Finds the steady-state mass flow rate (m_dot_ss) and calculates
     the resulting thermal properties (h, Tc_avg).
     """
-    global I_sq_R
-    I_sq_R = Q_gen
+    global Q_heat
+    Q_heat = Q_gen
     
  # Newton-Raphson parameters
     x0 = guess_m_dot
@@ -79,7 +79,7 @@ def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
 
     # 2. Calculate resulting thermal parameters at steady state
     Cp_c_in = Cp_func(T_in)
-    T_c_out_K = T_in + I_sq_R / (m_dot * Cp_c_in)
+    T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
     T_c_avg_K = (T_in + T_c_out_K) / 2
     
     # Calculate h at steady state
