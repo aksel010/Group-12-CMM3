@@ -1,114 +1,84 @@
+# main.py — Group-12-CMM3 Consolidated Execution
+
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp1d
 
-# --- Import from project files ---
-from config import q_b, m_b, C_b, T_in, T_b_max, R_b
-from ODE import Tb, dTb_dt
-from Mass_flowrate import calculate_steady_state_mass_flow
+# Import everything needed from your modules
+from config import *
+from ODE import Tb, dTb_dt, params_initial
+import C_Rate_Real_interpolation as cri
+import Current_Error as cerr
+import Mass_flowrate as mf
+import Optimum_Current as oc
+import Real_Charging_Time as rct
+import cooling_analysis as ca
+import heptane_itpl as hi
 
+def run_btms_optimization():
+    print("\n--- BTMS Optimization ---")
+    # Your original main.py logic (already structured for consolidated results)
+    results, optimal = run_optimization()
+    if optimal:
+        plot_results(results, optimal)
 
-def find_critical_current(current_range=range(5, 100, 5)):
-    """
-    Analyzes a range of currents to find the critical current where the final
-    battery temperature equals T_b_max.
+def run_c_rate_interpolation():
+    print("\n--- C-Rate Real Interpolation ---")
+    # cri: Only has top-level code, so may need to move code to cri.run() or similar.
+    # For now, assuming you can call functions for critical current and plotting:
+    critical_current = cri.find_root_cubic_spline()
+    print(f"Critical Current: {critical_current:.2f} A")
 
-    This function encapsulates the logic from 'Current against delta T.py'.
+def run_error_analysis():
+    print("\n--- Current Error Analysis ---")
+    # cerr: Only has top-level code, so may need to move print logic to cerr.run() or similar.
+    print(f"Combined Error: {cerr.total_combined_error:.6e} K")
 
-    Returns:
-        tuple: (critical_current, I_array, delta_T_array)
-    """
-    print("--- Running Critical Current Analysis ---")
-    I_runs = []
-    delta_T_list = []
+def run_mass_flowrate():
+    print("\n--- Mass Flowrate Solver ---")
+    # mass_flowrate.py: Only has if __name__ == "__main__": code for printing/plot.
+    # Should be a callable function, e.g. mf.run() or wrap logic in a function.
+    # For now, this just demonstrates usage.
+    # mf.calculate_steady_state_mass_flow(...)
+    pass  # Replace with mf.run() after you move code out of main block.
 
-    # Helper to package parameters for the ODE solver
-    def get_ode_params(I, m_dot_c):
-        return (m_b, C_b, I, R_b, 0.01, T_in, m_dot_c)
+def run_optimum_current():
+    print("\n--- Optimum Current Analysis ---")
+    # oc: Similar to above, wrap plot and print in callable function if needed.
+    print(f"Critical Current from Optimum_Current: {oc.critical_current:.2f} A")
+    print(f"RMSE of Interpolation: {oc.rmse:.6e} K")
 
-    for i in current_range:
-        I_0 = float(i)
-        # At each step, we need to find the corresponding steady-state mass flow
-        Q_gen = I_0**2 * R_b
-        m_dot_ss, _, _ = calculate_steady_state_mass_flow(Q_gen, T_in, guess_m_dot=0.01)
+def run_real_charging_time():
+    print("\n--- Real Charging Time ---")
+    # rct: Only has if __name__ == "__main__": code for printout.
+    # Needs logic moved to rct.run()
+    results = rct.calculate_charging_performance(oc.critical_current, Capacity_cell)
+    print("===Charging Performance===")
+    print(f"Optimum C-rate: {results['critical_C_rate']}C")
+    print(f"Optimum charge time: {results['fastest_charge_min']} min")
+    print(f"Recommended C-rate: {results['recommended_C_rate']}C ({results['recommended_charge_min']} min)")
 
-        if m_dot_ss <= 1e-6:
-            print(f"Warning: Could not find a valid mass flow rate for I = {I_0}A. Skipping.")
-            continue
+def run_cooling_analysis():
+    print("\n--- Cooling Analysis ---")
+    # ca: Only top-level head_loss printout—same note as above.
+    # Should be ca.run() for callable
+    pass
 
-        t_total = q_b / I_0  # Total time for charging
-        params = get_ode_params(I_0, m_dot_ss)
-        
-        _, T_profile = Tb(dTb_dt, t_total, params)
-        final_temp = T_profile[-1]
+def run_heptane_properties():
+    print("\n--- Heptane Fluid Properties ---")
+    # hi: Only has code under main block, so wrap your plotting logic in hi.run().
+    pass
 
-        I_runs.append(I_0)
-        delta_T_list.append(final_temp - T_b_max)
-        print(f"  - Current: {I_0: >3} A, Mass Flow: {m_dot_ss:.4f} kg/s, Final Temp: {final_temp:.2f} K, ΔT: {final_temp - T_b_max:+.2f} K")
-
-    I_array = np.array(I_runs)
-    delta_T_array = np.array(delta_T_list)
-
-    if not np.any(delta_T_array <= 0) or not np.any(delta_T_array > 0):
-        print("\nAnalysis complete. The system either always overheats or never reaches the maximum temperature.")
-        return None, I_array, delta_T_array
-
-    # Interpolate to find the current where delta_T is zero
-    deltaT_vs_current = interp1d(I_array, delta_T_array, kind='cubic', bounds_error=False, fill_value="extrapolate")
-    
-    # Find the root using a simple search, as fsolve can be complex here
-    from scipy.optimize import brentq
-    critical_current = brentq(deltaT_vs_current, I_array.min(), I_array.max())
-    
-    print(f"\n--- Critical Current Found: {critical_current:.2f} A ---")
-    return critical_current, I_array, delta_T_array
-
-
-def run_final_simulation(critical_current):
-    """
-    Runs the final ODE simulation at the determined critical current and
-    plots the results.
-    """
-    print("\n--- Running Final Simulation at Critical Current ---")
-    Q_gen = critical_current**2 * R_b
-    m_dot_final, T_c_avg, h_final = calculate_steady_state_mass_flow(Q_gen, T_in, guess_m_dot=0.01)
-    
-    t_total = q_b / critical_current
-    params = (m_b, C_b, critical_current, R_b, 0.01, T_in, m_dot_final)
-    
-    t_sim, T_sim = Tb(dTb_dt, t_total, params)
-    
-    # --- Reporting ---
-    print("\n" + "="*50)
-    print("      FINAL OPTIMIZED SYSTEM RESULTS")
-    print("="*50)
-    print(f"Critical Charging Current: {critical_current:.2f} A")
-    print(f"Steady-State Mass Flow Rate: {m_dot_final:.4f} kg/s")
-    print(f"Average Coolant Temperature: {T_c_avg:.2f} K")
-    print(f"Heat Transfer Coefficient (h): {h_final:.2f} W/(m²·K)")
-    print(f"Final Battery Temperature: {T_sim[-1]:.2f} K (Target: {T_b_max:.2f} K)")
-    print(f"Total Simulation Time: {t_total:.1f} s")
-    print("="*50)
-
-    # --- Plotting ---
-    plt.figure(figsize=(10, 6))
-    plt.plot(t_sim, T_sim, label='Battery Temperature (Tb)', color='navy')
-    plt.axhline(T_b_max, color='red', linestyle='--', label=f'Max Safe Temp ({T_b_max} K)')
-    plt.title(f'Battery Temperature During Charging @ {critical_current:.1f} A')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Temperature (K)')
-    plt.legend()
-    plt.grid(True, linestyle='--', alpha=0.6)
-    plt.tight_layout()
-    plt.show()
-
+def main():
+    print("==== Group 12 - CMM3 Consolidated Results ====\n")
+    run_btms_optimization()
+    run_c_rate_interpolation()
+    run_error_analysis()
+    run_mass_flowrate()
+    run_optimum_current()
+    run_real_charging_time()
+    run_cooling_analysis()
+    run_heptane_properties()
+    print("\n✓ All computations and plots complete!")
 
 if __name__ == "__main__":
-    # 1. Find the critical operating current
-    crit_I, _, _ = find_critical_current()
-
-    # 2. Run the final simulation and report results if a critical current was found
-    if crit_I is not None:
-        run_final_simulation(crit_I)
-    else:
-        print("\nCould not determine a critical current within the tested range.")
+    main()

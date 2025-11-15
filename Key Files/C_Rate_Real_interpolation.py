@@ -1,16 +1,22 @@
-import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from ODE import Tb, dTb_dt
-from config import *
-from Mass_flowrate import m_dot_ss
-from RK4_Error import *
+
+# Define generated data
+currents = np.array([1, 2.5, 5, 10, 15, 20])
+temperatures = np.array([25.433, 27.672, 34.595, 53.698, 75.221, 97.614])
+
+# Set maximum allowable temperature
+T_b_max = 45.0 
+
+# Calculate delta T (temperature difference from maximum safe temperature)
+delta_T = temperatures - T_b_max
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
     n = len(x_data) - 1
     
     # Step 1: Calculate h (interval widths)
-    H = [x_data[i+1] - x_data[i] for i in range(n)]
+    h = [x_data[i+1] - x_data[i] for i in range(n)]
     
     # Step 2: Set up tridiagonal system for second derivatives
     A = np.zeros((n+1, n+1))
@@ -18,15 +24,15 @@ def cubic_spline_coefficients(x_data, y_data):
     
     # Main diagonal
     for i in range(1, n):
-        A[i, i] = 2 * (H[i-1] + H[i])
+        A[i, i] = 2 * (h[i-1] + h[i])
     
     # Upper diagonal
     for i in range(1, n):
-        A[i, i+1] = H[i]
+        A[i, i+1] = h[i]
     
-    # Lower diagonal 
+    # Lower diagonal  
     for i in range(1, n):
-        A[i, i-1] = H[i-1]
+        A[i, i-1] = h[i-1]
     
     # Boundary conditions (natural spline)
     A[0, 0] = 1
@@ -34,7 +40,7 @@ def cubic_spline_coefficients(x_data, y_data):
     
     # Right-hand side
     for i in range(1, n):
-        b[i] = 6 * ((y_data[i+1] - y_data[i]) / H[i] - (y_data[i] - y_data[i-1]) / H[i-1])
+        b[i] = 6 * ((y_data[i+1] - y_data[i]) / h[i] - (y_data[i] - y_data[i-1]) / h[i-1])
     
     # Step 3: Solve for second derivatives M
     M = np.linalg.solve(A, b)
@@ -43,10 +49,10 @@ def cubic_spline_coefficients(x_data, y_data):
     coefficients = []
     for i in range(n):
         a = y_data[i]
-        b = (y_data[i+1] - y_data[i]) / H[i] - H[i] * (2 * M[i] + M[i+1]) / 6
+        b_val = (y_data[i+1] - y_data[i]) / h[i] - h[i] * (2 * M[i] + M[i+1]) / 6
         c = M[i] / 2
-        d = (M[i+1] - M[i]) / (6 * H[i])
-        coefficients.append((a, b, c, d, x_data[i], x_data[i+1]))
+        d = (M[i+1] - M[i]) / (6 * h[i])
+        coefficients.append((a, b_val, c, d, x_data[i], x_data[i+1]))
     
     return coefficients
 
@@ -72,53 +78,20 @@ def cubic_spline_interpolation(x_data, y_data, x_query):
         dx = x_query - x_start
         return a + b * dx + c * dx**2 + d * dx**3
 
-# Analysis
-I_runs = []
-delta_T = []
-final_temperatures = []
-
-def I_params(I):
-    return (
-        m_b,      # m [kg]
-        C_b,      # cp_b [J/(kg·K)]
-        I,        # I [A]
-        DC_IR *24,      # R_cell * n _cell it passes through[Ω]
-        A_s,     # A_s [m²]
-        T_in,     # T_c_in [K]
-        m_dot_ss     # m_dot_c [kg/s]
-    )
-
-# Generate data points
-for idx, i in enumerate(range(1, 30, 3)):
-    I_0 = i
-    t_total = q_b / I_0  # total time [s]
-    t_i, T_i = Tb(dTb_dt, I_params(I_0), stepsize=0.2)
-    I_runs.append(I_0)
-    delta_T.append(T_i[-1] - (T_b_max-rk4_error_val))
-    final_temperatures.append(T_i[-1])
-
-I_array = np.array(I_runs)
-delta_T_array = np.array(delta_T)
-
-def current_profile(I_query):
-    """Returns the interpolated Delta T (T_final - T_b_max) for a given current I_query."""
-    return cubic_spline_interpolation(I_array, delta_T_array, I_query)
-
 # Find critical current
 def find_root_cubic_spline():
     """Find where cubic spline crosses zero using bisection"""
-    I_min, I_max = I_array.min(), I_array.max()
+    I_min, I_max = currents.min(), currents.max()
     tolerance = 0.01
     
     for _ in range(100):
         I_mid = (I_min + I_max) / 2
-        
-        delta_T_mid = current_profile(I_mid) 
+        delta_T_mid = cubic_spline_interpolation(currents, delta_T, I_mid)
         
         if abs(delta_T_mid) < tolerance:
             return I_mid
         
-        delta_T_min = current_profile(I_min) 
+        delta_T_min = cubic_spline_interpolation(currents, delta_T, I_min)
         
         if delta_T_min * delta_T_mid < 0:
             I_max = I_mid
@@ -127,32 +100,42 @@ def find_root_cubic_spline():
     
     return (I_min + I_max) / 2
 
-#Error calculation
-critical_current = find_root_cubic_spline()
-delta_T_interpolated = np.array([current_profile(I) for I in I_array])
-residuals = delta_T_interpolated - delta_T_array
-rmse = np.sqrt(np.mean(residuals**2))
+def run():
+    # Find critical current via bisection
+    critical_current = find_root_cubic_spline()
+    print(f"Critical current: {critical_current:.2f} A")
 
-if __name__ == '__main__':
+    # Plot as before
     # Plot
     plt.figure(figsize=(10, 6))
-    plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
-    I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
-    # This part of the plot uses the old list comprehension style, which is fine
-    delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth] 
-
+    plt.scatter(currents, delta_T, color='blue', s=50, label='Experimental Data', zorder=5)
+    I_smooth = np.linspace(currents.min(), currents.max(), 100)
+    delta_T_smooth = [cubic_spline_interpolation(currents, delta_T, I) for I in I_smooth]
     plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
     plt.plot(critical_current, 0, 'ro', markersize=10, 
             label=f'Critical Point: {critical_current:.1f} A', zorder=6)
     plt.axhline(0, color='red', linestyle='--', linewidth=1)
 
     plt.xlabel('Current (A)')
-    plt.ylabel('Delta T (K)')
-    plt.title('Critical Current Analysis - Cubic Spline Interpolation')
+    plt.ylabel('Delta T (°C)')
+    plt.title(f'Critical vs delta T (T_max = {T_b_max}°C)')
     plt.legend()
 
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
 
-print(f"Critical Current: {critical_current:.2f} A")
+if __name__ == "__main__":
+    run()
+import Real_Data_C-rate
+
+
+df = pd.read_csv('Real_Data_C-rate.csv')
+df['charging_time_hours'] = df['charging_time_min'] / 60
+
+plt.figure(figsize=(10, 6))
+plt.semilogy(df['C-rate'], df['charging_time_hours'], 'bo-')
+plt.xlabel('C-rate')
+plt.ylabel('Charging Time (hours)')
+plt.grid(True)
+plt.show()

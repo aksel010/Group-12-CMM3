@@ -49,3 +49,6 @@ C_RE = 4 * M_DOT / (np.pi * D) # derived constant Reynlds no.
 
 #Pump Properties
 flowrate_min = 5.0 /60000 # m^3/s
+
+#RK4 stepsize
+H = 10
