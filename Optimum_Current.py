@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 from ODE import Tb, dTb_dt
 from config import *
 from Mass_flowrate import get_steady_state_values
@@ -78,16 +79,24 @@ def run():
     final_temperatures = []
     
     print("Generating data points...")
-    # Reduced range: from range(1, 30, 3) to range(5, 30, 5)
-    # This gives 5 points instead of 10: [5, 10, 15, 20, 25]
-    for idx, i in enumerate(range(5, 30, 5)):
+    total_start_time = time.time()
+    
+    for idx, i in enumerate(np.arange(6, 12, 1)):
         I_0 = i
-        print(f"  Computing for I = {I_0} A (point {idx+1}/5)")
+        iter_start = time.time()
+        print(f"  Computing for I = {I_0} A (point {idx+1}/20)...", end=" ")
+        
         t_total = q_b / I_0  # total time [s]
         t_i, T_i = Tb(dTb_dt, I_params(I_0, m_dot_ss), stepsize=0.2)
         I_runs.append(I_0)
         delta_T.append(T_i[-1] - (T_b_max - rk4_error_val))
         final_temperatures.append(T_i[-1])
+        
+        iter_time = time.time() - iter_start
+        print(f"done in {iter_time:.2f}s")
+    
+    total_time = time.time() - total_start_time
+    print(f"\nTotal data generation time: {total_time:.2f} seconds")
 
     I_array = np.array(I_runs)
     delta_T_array = np.array(delta_T)
@@ -96,7 +105,6 @@ def run():
     # Compare both methods
     comparison = compare_interpolation_accuracy(I_array, delta_T_array)
 
-    print(f"Spline RMSE: {comparison['spline_rmse']:.6f}")
     print(f"Newton Divided Diff RMSE: {comparison['newton_rmse']:.6f}")
 
     # Find critical current using bisection
@@ -163,6 +171,8 @@ def run():
     print(f"Critical Current: {critical_current:.2f} A")
     print(f"Newton result: {critical_current_newton}")
 
+    # Return the critical current so other modules can use it
+    return critical_current
 
 if __name__ == "__main__":
     run()

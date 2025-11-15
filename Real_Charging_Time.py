@@ -1,5 +1,4 @@
 from config import *
-from Optimum_Current import *
 
 def calculate_charging_performance(critical_current, battery_capacity_Ah, efficiency=0.85):
     # Convert to C-rate and calculate times
@@ -21,8 +20,14 @@ def calculate_charging_performance(critical_current, battery_capacity_Ah, effici
 
 # Calculate and display results
 def run():
-    results = calculate_charging_performance(critical_current, Capacity_cell)
+    # Get critical current from Optimum_Current module
+    import Optimum_Current as oc
+    print("Computing critical current...")
+    critical_current = oc.run()  # This will compute and return the critical current
     
+    print("\nCalculating charging performance...")
+    results = calculate_charging_performance(critical_current, Capacity_cell)
+
     print("===Charging Performance===")
     print(f"Optimum C-rate: {results['critical_C_rate']}C")
     print(f"Optimum charge time: {results['fastest_charge_min']} min")
