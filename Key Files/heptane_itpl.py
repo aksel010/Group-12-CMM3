@@ -3,15 +3,10 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from pathlib import Path
+from config import *
 
 # --- Constants ---
-N_HEPTANE_MOLAR_MASS = 0.100205  # kg/mol
-DITTUS_BOELTER_EXPONENT = 0.4   # for heating
 NIST_DATA_FILE = Path(__file__).parent / 'n heptane 2.txt'
-
-# fixed parameters for the cooling channel
-M_DOT = 0.05    # Mass flow rate [kg/s]
-D = 0.005       # Channel diameter [m]
 
 #clean NIST data
 def import_nist_txt(filepath: str | Path) -> pd.DataFrame:
@@ -47,8 +42,6 @@ Cp_data = nist_df['Cp'].values
 lambda_data = nist_df['Thermal_Cond'].values
 mu_data = nist_df['Viscosity'].values
 
-# derived constant C_Re
-C_RE = 4 * M_DOT / (np.pi * D)
 
 #interplate
 
@@ -57,12 +50,8 @@ Cp_func = interp1d(T_data, Cp_data, kind='cubic', bounds_error=False, fill_value
 mu_func = interp1d(T_data, mu_data, kind='cubic', bounds_error=False, fill_value=(mu_data[0], mu_data[-1]))
 rho_func = interp1d(T_data, rho_data, kind='cubic', bounds_error=False, fill_value=(rho_data[0], rho_data[-1]))
 
-#create H(T)
+#create h(T)
 def calculate_h(T: float | np.ndarray) -> float | np.ndarray:
-    """
-    Calculates the heat transfer coefficient (h) for n-heptane at a given temperature.
-    This function is vectorized to accept NumPy arrays.
-    """
     lam = lambda_func(T)
     Cp = Cp_func(T)
     mu = mu_func(T)

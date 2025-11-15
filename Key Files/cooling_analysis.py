@@ -1,9 +1,11 @@
 import numpy as np
 from scipy.optimize import fsolve
 from heptane_itpl import rho_func, mu_func
+from config import *
 
-def calculate_head_loss_only(Q_main_L_min, T_avg_K=300, D_main=17e-03, n_branches=5, 
-                           w_branch=30e-03, h_branch=2.75e-03, L_a=0.5, L_b=0.5, L_c=0.2):
+
+def calculate_head_loss_only(Q_main_L_min, T_avg_K=300, D_main=D, n, 
+                           w_branch , h_branch, L_a, L_b, L_c):
     """
     Calculate head loss for a given flow rate WITHOUT internal fsolve
     This assumes equal flow distribution for simplicity
@@ -11,7 +13,7 @@ def calculate_head_loss_only(Q_main_L_min, T_avg_K=300, D_main=17e-03, n_branche
     
     class SystemParams:
         def __init__(self):
-            self.n = n_branches
+            self.n = n
             self.D = D_main
             self.w_branch = w_branch
             self.h_branch = h_branch
