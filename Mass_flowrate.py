@@ -5,8 +5,6 @@ from cooling_analysis import get_head_loss
 from config import *
 from heptane_itpl import calculate_h, Cp_func, rho_func
 from root_finders import newton
-
-I_sq_R = 0.0
         
 
 # HYDRAULIC BALANCE FUNCTIONS
@@ -134,6 +132,18 @@ def run():
     plt.ylabel('Pressure Balance Residual (Pa)')
     plt.title('Pressure Balance Residual vs Mass Flow Rate')
     plt.show()
+
+def get_steady_state_values():
+    """
+    Returns the steady-state mass flow rate and related values.
+    Call this instead of importing m_dot_ss directly to avoid circular imports.
+    """
+    Q_gen = I_0**2 * R_b
+    T_c_in_K = T_in
+    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
+        Q_gen, T_c_in_K, M_DOT
+    )
+    return m_dot_ss, T_c_avg_K, h_ss
 
 if __name__ == "__main__":
     run()
