@@ -38,7 +38,10 @@ S_b = w_branch * h_branch
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties
-M_DOT = 0.05    # Initial mass flow rate [kg/s]
+M_DOT = 0.0001    # Initial mass flow rate [kg/s]
 N_HEPTANE_MOLAR_MASS = 0.100205
 DITTUS_BOELTER_EXPONENT = 0.4
 C_RE = 4 * M_DOT / (np.pi * D) # derived constant Reynlds no.
+
+#Pump Properties
+flowrate_min = 5.0 /60000 # m^3/s
