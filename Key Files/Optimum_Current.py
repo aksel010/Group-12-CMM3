@@ -9,7 +9,7 @@ def cubic_spline_coefficients(x_data, y_data):
     n = len(x_data) - 1
     
     # Step 1: Calculate h (interval widths)
-    h = [x_data[i+1] - x_data[i] for i in range(n)]
+    H = [x_data[i+1] - x_data[i] for i in range(n)]
     
     # Step 2: Set up tridiagonal system for second derivatives
     A = np.zeros((n+1, n+1))
@@ -17,15 +17,15 @@ def cubic_spline_coefficients(x_data, y_data):
     
     # Main diagonal
     for i in range(1, n):
-        A[i, i] = 2 * (h[i-1] + h[i])
+        A[i, i] = 2 * (H[i-1] + H[i])
     
     # Upper diagonal
     for i in range(1, n):
-        A[i, i+1] = h[i]
+        A[i, i+1] = H[i]
     
-    # Lower diagonal  
+    # Lower diagonal 
     for i in range(1, n):
-        A[i, i-1] = h[i-1]
+        A[i, i-1] = H[i-1]
     
     # Boundary conditions (natural spline)
     A[0, 0] = 1
@@ -33,7 +33,7 @@ def cubic_spline_coefficients(x_data, y_data):
     
     # Right-hand side
     for i in range(1, n):
-        b[i] = 6 * ((y_data[i+1] - y_data[i]) / h[i] - (y_data[i] - y_data[i-1]) / h[i-1])
+        b[i] = 6 * ((y_data[i+1] - y_data[i]) / H[i] - (y_data[i] - y_data[i-1]) / H[i-1])
     
     # Step 3: Solve for second derivatives M
     M = np.linalg.solve(A, b)
@@ -42,9 +42,9 @@ def cubic_spline_coefficients(x_data, y_data):
     coefficients = []
     for i in range(n):
         a = y_data[i]
-        b = (y_data[i+1] - y_data[i]) / h[i] - h[i] * (2 * M[i] + M[i+1]) / 6
+        b = (y_data[i+1] - y_data[i]) / H[i] - H[i] * (2 * M[i] + M[i+1]) / 6
         c = M[i] / 2
-        d = (M[i+1] - M[i]) / (6 * h[i])
+        d = (M[i+1] - M[i]) / (6 * H[i])
         coefficients.append((a, b, c, d, x_data[i], x_data[i+1]))
     
     return coefficients
@@ -81,7 +81,7 @@ def I_params(I):
         m_b,      # m [kg]
         C_b,      # cp_b [J/(kg·K)]
         I,        # I [A]
-        DC_IR *24 ,      # R [Ω]
+        DC_IR *24,      # R_cell * n _cell it passes through[Ω]
         A_s,     # A_s [m²]
         T_in,     # T_c_in [K]
         m_dot_ss     # m_dot_c [kg/s]
@@ -91,13 +91,17 @@ def I_params(I):
 for idx, i in enumerate(range(1, 30, 3)):
     I_0 = i
     t_total = q_b / I_0  # total time [s]
-    t_i, T_i = Tb(dTb_dt, I_params(I_0), stepsize =0.2)
+    t_i, T_i = Tb(dTb_dt, I_params(I_0), stepsize=0.2)
     I_runs.append(I_0)
     delta_T.append(T_i[-1] - T_b_max)
     final_temperatures.append(T_i[-1])
 
 I_array = np.array(I_runs)
 delta_T_array = np.array(delta_T)
+
+def current_profile(I_query):
+    """Returns the interpolated Delta T (T_final - T_b_max) for a given current I_query."""
+    return cubic_spline_interpolation(I_array, delta_T_array, I_query)
 
 # Find critical current
 def find_root_cubic_spline():
@@ -107,12 +111,13 @@ def find_root_cubic_spline():
     
     for _ in range(100):
         I_mid = (I_min + I_max) / 2
-        delta_T_mid = cubic_spline_interpolation(I_array, delta_T_array, I_mid)
+        
+        delta_T_mid = current_profile(I_mid) 
         
         if abs(delta_T_mid) < tolerance:
             return I_mid
         
-        delta_T_min = cubic_spline_interpolation(I_array, delta_T_array, I_min)
+        delta_T_min = current_profile(I_min) 
         
         if delta_T_min * delta_T_mid < 0:
             I_max = I_mid
@@ -121,16 +126,22 @@ def find_root_cubic_spline():
     
     return (I_min + I_max) / 2
 
+#Error calculation
 critical_current = find_root_cubic_spline()
+delta_T_interpolated = np.array([current_profile(I) for I in I_array])
+residuals = delta_T_interpolated - delta_T_array
+rmse = np.sqrt(np.mean(residuals**2))
 
 # Plot
 plt.figure(figsize=(10, 6))
 plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
 I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
-delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth]
+# This part of the plot uses the old list comprehension style, which is fine
+delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth] 
+
 plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
 plt.plot(critical_current, 0, 'ro', markersize=10, 
-         label=f'Critical Point: {critical_current:.1f} A', zorder=6)
+          label=f'Critical Point: {critical_current:.1f} A', zorder=6)
 plt.axhline(0, color='red', linestyle='--', linewidth=1)
 
 plt.xlabel('Current (A)')

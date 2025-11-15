@@ -1,33 +1,21 @@
 # I'm looking to combine the error from the interpolation and the error from the RK4 method.
-import Current_profile
 import numpy as np
 from config import stepsize as interpolation_step
-from ODE import rk4_solve, params_initial, t_total
+from ODE import Tb , dTb_dt , params_initial, H
+from Optimum_Current import rmse, h
 
-currentprofile = Current_profile.get_delta_T_vs_I_interpolator()
-h_interp = interpolation_step
-rk4_step =  0.2 
-
-fourth_derivative = np.array([])
-max4th = max(fourth_derivative)
-
-C_cubicsplien = 1/384 #### need source for this value
-halfstep = rk4_step / 2 
-
-#ITPL ERROR ESTIMATION
-def interpolation_error(max_fourth_derivative, h_interp):
-    return ( C_cubicsplien * max_fourth_derivative * h_interp**4 )
+rk4_step = H
 
 #RK4 ERROR ESTIMATION
-T_fullstep = rk4_solve(t_total, rk4_step, params_initial)
-T_halfstep = rk4_solve(t_total, halfstep, params_initial)
+T_fullstep = Tb(dTb_dt, params_initial, stepsize = rk4_step)
+T_halfstep = Tb(dTb_dt, params_initial, stepsize = rk4_step / 2)
 
 def rk4_error():
     p = 4.0
     estimated_error = abs(T_halfstep - T_fullstep) / (2**p - 1)
     return estimated_error
 
-interpolation_e_val = interpolation_error(max4th, h_interp)
+interpolation_e_val = rmse
 rk4_error_val = rk4_error()
 
 def combined_error(interpolation_error_val, rk4_error_val):
@@ -35,7 +23,7 @@ def combined_error(interpolation_error_val, rk4_error_val):
 
 total_combined_error = combined_error(interpolation_e_val, rk4_error_val)
 
-print(f"Interpolation Step Size (h_interp): {h_interp:.6e}")
+print(f"Interpolation Step Size (h_interp): {h:.6e}")
 print(f"RK4 Integration Step Size (rk4_step): {rk4_step:.6e}")
 print(f"Interpolation Error: {interpolation_e_val:.6e} K")
 print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
