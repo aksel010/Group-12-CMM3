@@ -17,10 +17,7 @@ def main():
     print("==== Group 12 - CMM3 Consolidated Results ====\n")
     
     print("\n--- BTMS (ODE) Optimization ---")
-    if hasattr(ODE, "run"):
-        ODE.run()
-    else:
-        print("No ODE.run() found. Check ODE.py.")
+    ODE.run()
 
     print("\n--- RK4 Error Analysis ---")
     rk4e.run()

@@ -38,7 +38,6 @@ L_c = 0.2   # branch outlet length (m)
 S_a = np.pi * (D/2)**2
 S_b = w_branch * h_branch
 A_s = L_b *(2*w_branch + 2*h_branch)  # wetted area of branch
-print(f"A_s: {A_s}")
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties
