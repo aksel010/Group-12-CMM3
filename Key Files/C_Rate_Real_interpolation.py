@@ -1,4 +1,4 @@
-import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # Define generated data
@@ -127,3 +127,15 @@ def run():
 
 if __name__ == "__main__":
     run()
+import Real_Data_C-rate
+
+
+df = pd.read_csv('Real_Data_C-rate.csv')
+df['charging_time_hours'] = df['charging_time_min'] / 60
+
+plt.figure(figsize=(10, 6))
+plt.semilogy(df['C-rate'], df['charging_time_hours'], 'bo-')
+plt.xlabel('C-rate')
+plt.ylabel('Charging Time (hours)')
+plt.grid(True)
+plt.show()
