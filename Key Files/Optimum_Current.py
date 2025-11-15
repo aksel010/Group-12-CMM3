@@ -22,7 +22,7 @@ def cubic_spline_coefficients(x_data, y_data):
     for i in range(1, n):
         A[i, i+1] = h[i]
     
-    # Lower diagonal  
+    # Lower diagonal 
     for i in range(1, n):
         A[i, i-1] = h[i-1]
     
@@ -81,7 +81,7 @@ def I_params(I):
         C_b,      # cp_b [J/(kg·K)]
         I,        # I [A]
         R_b,      # R [Ω]
-        S_b*10,     # A_s [m²]
+        S_b*10,   # A_s [m²]
         T_in,     # T_c_in [K]
         M_DOT     # m_dot_c [kg/s]
     )
@@ -89,7 +89,7 @@ def I_params(I):
 # Generate data points
 for idx, i in enumerate(range(5, 130, 5)):
     I_0 = i
-    t_total = q_b / I_0  # total time [s]
+    t_total = q_b / I_0 # total time [s]
     t_i, T_i = Tb(dTb_dt, I_params(I_0))
     I_runs.append(I_0)
     delta_T.append(T_i[-1] - T_b_max)
@@ -97,6 +97,10 @@ for idx, i in enumerate(range(5, 130, 5)):
 
 I_array = np.array(I_runs)
 delta_T_array = np.array(delta_T)
+
+def current_profile(I_query):
+    """Returns the interpolated Delta T (T_final - T_b_max) for a given current I_query."""
+    return cubic_spline_interpolation(I_array, delta_T_array, I_query)
 
 # Find critical current
 def find_root_cubic_spline():
@@ -106,12 +110,13 @@ def find_root_cubic_spline():
     
     for _ in range(100):
         I_mid = (I_min + I_max) / 2
-        delta_T_mid = cubic_spline_interpolation(I_array, delta_T_array, I_mid)
+        
+        delta_T_mid = current_profile(I_mid) 
         
         if abs(delta_T_mid) < tolerance:
             return I_mid
         
-        delta_T_min = cubic_spline_interpolation(I_array, delta_T_array, I_min)
+        delta_T_min = current_profile(I_min) 
         
         if delta_T_min * delta_T_mid < 0:
             I_max = I_mid
@@ -120,16 +125,22 @@ def find_root_cubic_spline():
     
     return (I_min + I_max) / 2
 
+#Error calculation
 critical_current = find_root_cubic_spline()
+delta_T_interpolated = np.array([current_profile(I) for I in I_array])
+residuals = delta_T_interpolated - delta_T_array
+rmse = np.sqrt(np.mean(residuals**2))
 
 # Plot
 plt.figure(figsize=(10, 6))
 plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
 I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
-delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth]
+# This part of the plot uses the old list comprehension style, which is fine
+delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth] 
+
 plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
 plt.plot(critical_current, 0, 'ro', markersize=10, 
-         label=f'Critical Point: {critical_current:.1f} A', zorder=6)
+          label=f'Critical Point: {critical_current:.1f} A', zorder=6)
 plt.axhline(0, color='red', linestyle='--', linewidth=1)
 
 plt.xlabel('Current (A)')
