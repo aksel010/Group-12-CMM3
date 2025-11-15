@@ -16,13 +16,14 @@ m_cell = 0.158 # test cell mass
 # Battery pack properties
 m_b = m_cell * n_cell  # kg total battery pack
 C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
-q_b =  Capacity_cell * 3600 #As
+Capacity_battery = Capacity_cell
+q_b =  Capacity_cell * 3600 #As 
 V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
 
 
-T_b_max = 308.15  # K
-T_in = 298.13  # K
+T_b_max = 40 + 273.13  # K 
+T_in = 15 + 273.13  # K
 
 # Channel properties
 n = 5  # number of branches
@@ -38,7 +39,10 @@ S_b = w_branch * h_branch
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties
-M_DOT = 0.05    # Initial mass flow rate [kg/s]
+M_DOT = 0.0001    # Initial mass flow rate [kg/s]
 N_HEPTANE_MOLAR_MASS = 0.100205
 DITTUS_BOELTER_EXPONENT = 0.4
 C_RE = 4 * M_DOT / (np.pi * D) # derived constant Reynlds no.
+
+#Pump Properties
+flowrate_min = 5.0 /60000 # m^3/s

@@ -2,58 +2,38 @@ import numpy as np
 from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
 from cooling_analysis import get_head_loss
-from config import T_in
+from config import *
 from heptane_itpl import calculate_h, Cp_func, rho_func
 
-class SystemParams:
-    def __init__(self):
-        # Geometry parameters from the paper
-        self.n = 5  # number of branches
-        self.D = 17e-03  # main pipe diameter (m)
-        self.w_branch = 30e-03  # branch width (m)
-        self.h_branch = 2.75e-03  # branch height (m)
-        self.L_a = 0.5  # main pipe length per segment (m)
-        self.L_b = 0.5  # branch length (m)
-        self.g = 9.81  # gravitational acceleration (m/s²)
-        self.T_c_in = T_in  # Coolant inlet temperature (K)
-        self.I_sq_R = 0.0  # Placeholder for I^2*R  (W)
+I_sq_R = 0.0
         
-        # Calculate areas
-        self.S_a = np.pi * (self.D/2)**2  # main pipe cross-sectional area
-        self.S_b = self.w_branch * self.h_branch  # branch cross-sectional area
-        self.d_H = 2 * self.w_branch * self.h_branch / (self.w_branch + self.h_branch)  # hydraulic diameter
-
 
 # HYDRAULIC BALANCE FUNCTIONS
 
-def pump_head_curve(mass_flow_rate_kg_s,T_c_avg_K):
+def pump_head_curve(m_dot,T_c_avg_K):
     # currently placeholder but can use manufacture spec
     H_max = 80.0  # Max head (m)
     P_max = H_max * rho_func(T_c_avg_K)*9.81 # Pa (at max head)
     V_dot_max = 9.0 / 60000  # m³/s (9 l/min)
     K = H_max / (V_dot_max** 2)
-    return P_max - K * mass_flow_rate_kg_s**2
+    return P_max - K * m_dot**2
 
-def system_head_loss_calc(mass_flow_rate_kg_s,T_c_avg_K):
-    m_dot = mass_flow_rate_kg_s
+def system_head_loss_calc(m_dot,T_c_avg_K):
     V_dot = m_dot / rho_func(T_c_avg_K)  # m³/s
-    return get_head_loss(V_dot * 1000 * 60) * rho_func(T_c_avg_K) * params.g  # Pa
+    return get_head_loss(V_dot) * rho_func(T_c_avg_K) * g  # Pa
 
 # root finding of coupled system
-def pressure_balance_couple(mass_flow_rate_kg_s, params):
+def pressure_balance_couple(m_dot):
     """
     Function whose root represents the hydraulic balance (P_pump - P_loss = 0).
     """
-    m_dot = mass_flow_rate_kg_s
-    if m_dot <= 1e-9: return 1e10 # High residual for non-physical flow
-    
     # 1. Thermal Balance (to find T_c_avg)
     # Use Cp at inlet temperature for bulk energy calculation (simplification)
-    Cp_c_in = Cp_func(params.T_c_in)
+    Cp_c_in = Cp_func(T_in)
     # calculate outlet temp with energy balance
-    T_c_out_K = params.T_c_in + params.I_sq_R / (m_dot * Cp_c_in)
+    T_c_out_K = T_in + I_sq_R / (m_dot * Cp_c_in)
     # average Coolant Temperature
-    T_c_avg_K = (params.T_c_in + T_c_out_K) / 2
+    T_c_avg_K = (T_in + T_c_out_K) / 2
     
     # 2. Hydraulic Balance
     
@@ -66,31 +46,20 @@ def pressure_balance_couple(mass_flow_rate_kg_s, params):
     # 4. Return the residual head
     return P_supplied_pump - P_loss_system
 
-def df(mass_flow_rate_kg_s, params):
+def df(m_dot):
     """
     Analytical derivative of pressure_balance_couple function.
     Uses finite differences for complex dependencies.
     """
-    h = 1e-8  # Small step for numerical derivative
-    f_x = pressure_balance_couple(mass_flow_rate_kg_s, params)
-    f_x_plus_h = pressure_balance_couple(mass_flow_rate_kg_s + h, params)
+    H = 1e-8  # step size for numerical derivative
+    f_x = pressure_balance_couple(m_dot)
+    f_x_plus_h = pressure_balance_couple(m_dot + H)
     
-    return (f_x_plus_h - f_x) / h
+    return (f_x_plus_h - f_x) / H
 
 def newton(f, Df, x0, epsilon, max_iter, args=()):
     """
     Newton-Raphson method for finding roots.
-    
-    Parameters:
-    f : function - the function whose root we want to find
-    Df : function - derivative of f
-    x0 : float - initial guess
-    epsilon : float - tolerance
-    max_iter : int - maximum number of iterations
-    args : tuple - additional arguments to pass to f and Df
-    
-    Returns:
-    float or None - the root if found, None otherwise
     """
     xn = x0
     for n in range(0, max_iter):
@@ -124,8 +93,7 @@ def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
     Finds the steady-state mass flow rate (m_dot_ss) and calculates
     the resulting thermal properties (h, Tc_avg).
     """
-    params = SystemParams()
-    params.I_sq_R = Q_gen
+    I_sq_R = Q_gen
     
  # Newton-Raphson parameters
     x0 = guess_m_dot
@@ -139,7 +107,7 @@ def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
         x0, 
         epsilon, 
         max_iter, 
-        args=(params,)
+        args=()
     )
     
     if m_dot is None:
@@ -147,12 +115,11 @@ def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
         m_dot = 1e-6  # Return small positive value as fallback
 
     # 2. Calculate resulting thermal parameters at steady state
-    Cp_c_in = Cp_func(T_c_in)
-    T_c_out_K = T_c_in + params.I_sq_R / (m_dot * Cp_c_in)
-    T_c_avg_K = (T_c_in + T_c_out_K) / 2
+    Cp_c_in = Cp_func(T_in)
+    T_c_out_K = T_in + I_sq_R / (m_dot * Cp_c_in)
+    T_c_avg_K = (T_in + T_c_out_K) / 2
     
-    # Calculate h using the real imported function
-    # Note: The real calculate_h signature is (T, m_dot, D)
+    # Calculate h at steady state
     h_ss = calculate_h(T_c_avg_K)
     
     return m_dot, T_c_avg_K, h_ss
@@ -163,13 +130,10 @@ if __name__ == '__main__':
     # Define inputs for this single cell scenario
     Q_gen = 30**2 * 0.6  # Watts (I^2*R) - Heat generated by this single cell
     T_c_in_K = T_in      # Kelvin (20.0 °C)
-    m_dot_guess = 0.0001  # Initial guess for the solver
-
-    params = SystemParams()
     
     # Calculate steady state
-    m_dot_ss_kg_s, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
-        Q_gen, T_c_in_K, m_dot_guess
+    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
+        Q_gen, T_c_in_K, M_DOT
     )
 
     print("\n" + "="*50)
@@ -179,16 +143,16 @@ if __name__ == '__main__':
     print(f"Coolant Inlet Temperature (T_c,in): {T_c_in_K:.2f} K")
     print("-----------------------------------------")
     
-    if m_dot_ss_kg_s > 0:
+    if m_dot_ss > 0:
         print(" Steady-State Operating Point Found")
         print("-----------------------------------------")
-        print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss_kg_s:.5f} kg/s")
+        print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.5f} kg/s")
         print(f"Average Coolant Temperature (T_c,avg): {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
         print(f"Heat Transfer Coefficient (h): {h_ss:.2f} W/(m²·K)")
         
         # Calculate the pressure values for comparison
-        P_pump_ss = pump_head_curve(m_dot_ss_kg_s, T_c_avg_K)
-        P_system_ss = system_head_loss_calc(m_dot_ss_kg_s, T_c_avg_K)
+        P_pump_ss = pump_head_curve(m_dot_ss, T_c_avg_K)
+        P_system_ss = system_head_loss_calc(m_dot_ss, T_c_avg_K)
         print("\nHydraulic Balance Check:")
         print(f"Supplied Pressure Drop (dP_pump): {P_pump_ss:.2f} Pa")
         print(f"Channel Head Loss (dP_system): {P_system_ss:.2f} Pa")
@@ -197,8 +161,8 @@ if __name__ == '__main__':
     else:
         print(" Calculation failed. Solver did not converge or found non-physical flow.")
 
-    m = np.linspace(m_dot_guess, 0.02 , 1000)
-    plt.plot(m, [pressure_balance_couple(mi, params) for mi in m])
+    m = np.linspace(M_DOT, 0.02 , 1000)
+    plt.plot(m, [pressure_balance_couple(mi) for mi in m])
     plt.axhline(0, color='k', linestyle='--')
     plt.xlabel('Mass Flow Rate (kg/s)')     
     plt.ylabel('Pressure Balance Residual (Pa)')
