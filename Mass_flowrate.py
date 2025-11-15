@@ -62,23 +62,16 @@ def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
     Finds the steady-state mass flow rate (m_dot_ss) and calculates
     the resulting thermal properties (h, Tc_avg).
     """
-            global I_sq_R
+    global I_sq_R
     I_sq_R = Q_gen
     
  # Newton-Raphson parameters
     x0 = guess_m_dot
-        epsilon = 1e-6
+    epsilon = 1e-6
     max_iter = 100
     
     # 1. Solve for m_dot_ss using Newton-Raphson
-    m_dot = newton(
-        pressure_balance_couple, 
-        df, 
-        x0, 
-        epsilon, 
-        max_iter, 
-        args=()
-    ) / 2*n
+    m_dot = newton(pressure_balance_couple, df, x0, epsilon, max_iter, args=()) / (2*n)
     
     if m_dot is None:
         print("Warning: Newton-Raphson failed to converge")
