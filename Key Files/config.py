@@ -21,7 +21,8 @@ m_cell = 0.158 # test cell mass
 # Battery pack properties
 m_b = m_cell * n_cell  # kg total battery pack
 C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
-q_b =  Capacity_cell * 3600 #As
+Capacity_battery = Capacity_cell
+q_b =  Capacity_cell * 3600 #As 
 V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
 
