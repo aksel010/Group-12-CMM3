@@ -4,7 +4,7 @@
 
 ### Project Overview
 
-This project designs and optimizes a liquid cooling plate system for electric vehicle (EV) battery thermal management during fast-charging cycles. The simulation framework evaluates cooling channel geometries and flow conditions to minimize pump power consumption while maintaining safe battery operating temperatures.
+This project designs and optimises a liquid cooling plate system for a hybrid electric vehicle (HEV) battery thermal management during fast-charging cycles. The simulation framework evaluates cooling channel geometries and flow conditions to minimize pump power consumption while maintaining safe battery operating temperatures.
 
 **Key Challenge**: Fast charging (3C rate) generates significant heat in lithium-ion battery cells. Without effective cooling, cell temperatures can exceed safe operating limits (>45°C), reducing battery lifespan and creating safety risks.
 
@@ -20,7 +20,7 @@ This project designs and optimizes a liquid cooling plate system for electric ve
 
 **Course**: CMM3 - Computational Methods and Modelling  
 **Program**: 3rd Year Mechanical Engineering  
-**Institution**: Imperial College London
+**Institution**: The University of Edinburgh
 
 ---
 
@@ -30,7 +30,7 @@ The optimization targets three critical constraints:
 
 1. **Thermal Constraint**: Maximum cell temperature ≤ 45°C during 3C fast charge
 2. **Pressure Constraint**: Total pressure drop ≤ 100 kPa across cooling system
-3. **Optimization Goal**: Minimize pumping power consumption
+3. **Optimization Goal**: Minimize pumping power time
 
 **Design Variables**:
 - Channel width and height
