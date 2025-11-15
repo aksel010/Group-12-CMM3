@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 from ODE import Tb, dTb_dt
 from config import *
 from Mass_flowrate import m_dot_ss
-from RK4_Error import *
 
 # Cubic Spline Interpolation
 def cubic_spline_coefficients(x_data, y_data):
+    global SPLINE_COEFFICIENTS, I_ARRAY
     n = len(x_data) - 1
-    
+    I_ARRAY = np.array(x_data)
+
     # Step 1: Calculate h (interval widths)
     H = [x_data[i+1] - x_data[i] for i in range(n)]
     
@@ -41,6 +42,7 @@ def cubic_spline_coefficients(x_data, y_data):
     
     # Step 4: Calculate coefficients for each segment
     coefficients = []
+    SPLINE_COEFFICIENTS = coefficients
     for i in range(n):
         a = y_data[i]
         b = (y_data[i+1] - y_data[i]) / H[i] - H[i] * (2 * M[i] + M[i+1]) / 6
@@ -51,12 +53,16 @@ def cubic_spline_coefficients(x_data, y_data):
     return coefficients
 
 def cubic_spline_interpolation(x_data, y_data, x_query):
-    coefficients = cubic_spline_coefficients(x_data, y_data)
+    # Ensure coefficients are calculated before interpolating
+    if SPLINE_COEFFICIENTS is None:
+        cubic_spline_coefficients(x_data, y_data)
+    
+    coefficients = SPLINE_COEFFICIENTS
     
     # Find the correct segment
     for coeff in coefficients:
         a, b, c, d, x_start, x_end = coeff
-        if x_start <= x_query <= x_end:
+        if x_start <= x_query <= x_end + 1e-9:
             dx = x_query - x_start
             return a + b * dx + c * dx**2 + d * dx**3
     
@@ -71,6 +77,28 @@ def cubic_spline_interpolation(x_data, y_data, x_query):
         a, b, c, d, x_start, x_end = coeff
         dx = x_query - x_start
         return a + b * dx + c * dx**2 + d * dx**3
+    
+def cubic_spline_derivative(x_query):
+
+    if SPLINE_COEFFICIENTS is None:
+         raise RuntimeError("Cubic spline coefficients must be calculated first.")
+         
+    coefficients = SPLINE_COEFFICIENTS
+    x_data = I_ARRAY 
+    
+    for coeff in coefficients:
+        a, b, c, d, x_start, x_end = coeff
+        if x_start <= x_query <= x_end + 1e-9: 
+            dx = x_query - x_start
+            return b + 2 * c * dx + 3 * d * dx**2
+            
+    # Extrapolation handling
+    coeff = coefficients[0] if x_query < x_data[0] else coefficients[-1]
+    a, b, c, d, x_start, x_end = coeff
+    dx = x_query - x_start
+    # Use the derivative of the boundary segment
+    return b + 2 * c * dx + 3 * d * dx**2
+
 
 # Analysis
 I_runs = []
@@ -100,6 +128,8 @@ for idx, i in enumerate(range(1, 30, 3)):
 I_array = np.array(I_runs)
 delta_T_array = np.array(delta_T)
 
+cubic_spline_coefficients(I_array, delta_T_array)
+
 def current_profile(I_query):
     """Returns the interpolated Delta T (T_final - T_b_max) for a given current I_query."""
     return cubic_spline_interpolation(I_array, delta_T_array, I_query)
@@ -126,6 +156,21 @@ def find_root_cubic_spline():
             I_min = I_mid
     
     return (I_min + I_max) / 2
+
+#root finding validation with NR
+
+critical_current_bisection = find_root_cubic_spline()
+print(f"Bisection result: {critical_current_bisection}") # Added print for bisection result
+
+def f_to_test(I):
+    return current_profile(I)
+    
+def Df_to_test(I): 
+    return cubic_spline_derivative(I)
+
+# Use the bisection result as a good initial guess for the Newton-Raphson method
+critical_current_newton = newton(f_to_test, Df_to_test, x0=critical_current_bisection, epsilon=0.01, max_iter=50) 
+
 
 #Error calculation
 critical_current = find_root_cubic_spline()
@@ -154,8 +199,9 @@ def run():
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
-    
+
     print(f"Critical Current: {critical_current:.2f} A")
+    print(f"Newton result: {critical_current_newton}")
 
 if __name__ == "__main__":
     run()

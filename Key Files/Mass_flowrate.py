@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from cooling_analysis import get_head_loss
 from config import *
 from heptane_itpl import calculate_h, Cp_func, rho_func
+from root_finders import newton
 
 I_sq_R = 0.0
         
@@ -56,37 +57,6 @@ def df(m_dot):
     f_x_plus_h = pressure_balance_couple(m_dot + H)
     
     return (f_x_plus_h - f_x) / H
-
-def newton(f, Df, x0, epsilon, max_iter, args=()):
-    """
-    Newton-Raphson method for finding roots.
-    """
-    xn = x0
-    for n in range(0, max_iter):
-        # Pass additional arguments to the functions
-        if args:
-            fxn = f(xn, *args)
-            Dfxn = Df(xn, *args)
-        else:
-            fxn = f(xn)
-            Dfxn = Df(xn)
-            
-        if abs(fxn) < epsilon:
-            print('Found solution after', n, 'iterations.')
-            return xn
-            
-        if Dfxn == 0:
-            print('Zero derivative. No solution found.')
-            return None
-            
-        xn = xn - fxn / Dfxn
-        
-        # Ensure positive mass flow rate
-        if xn < 0:
-            xn = 1e-6  # Small positive value
-            
-    print('Exceeded maximum iterations. No solution found.')
-    return None
 
 def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
     """
