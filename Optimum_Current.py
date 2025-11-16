@@ -81,7 +81,7 @@ def run():
     print("Generating data points...")
     total_start_time = time.time()
     
-    for idx, i in enumerate(np.arange(6, 12, 1)):
+    for idx, i in enumerate(np.arange(2, 16, 1)):
         I_0 = i
         iter_start = time.time()
         print(f"  Computing for I = {I_0} A (point {idx+1}/20)...", end=" ")
