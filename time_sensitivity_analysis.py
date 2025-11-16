@@ -7,7 +7,7 @@ t = df['Time (s)']
 
 
 plt.figure()
-plt.plot(I, t, 'o-', markersize=4)
+plt.scatter(I, t)
 plt.xlabel("Current (A)")
 plt.ylabel("Time (s)")
 plt.title("Computation Time vs Current")
