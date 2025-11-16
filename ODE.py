@@ -91,14 +91,9 @@ def Tb_scipy(dTdt, params):
     t_final = q_b / params[2]
     # solve_ivp call
     sol = solve_ivp(
-        # FIX: Accept optional arguments (*_) from solve_ivp 
-        # but only use t and T, as 'params' is hardcoded inside the lambda body.
         fun=lambda t, T, *_: dTdt(T, t, params),  
-        
         t_span=[t0, t_final],
         y0=[T0],
-        # Remove the 'args' tuple since 'params' is already passed explicitly in the lambda.
-        # If you keep 'args', the lambda needs another fix (see alternative below).
         method='LSODA', 
         dense_output=True, 
         rtol=1e-6,        
