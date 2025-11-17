@@ -26,7 +26,7 @@ def compute_optimum_current(threshold=I_Threshold):
     return I_store
 
 def main():
-    print("==== Group 12 - CMM3 Consolidated Results ====\n")
+    print("==== Group 12 - CMM3 Consolidated Results ====")
     
     ODE.run()
 
@@ -42,7 +42,6 @@ def main():
     print("\n--- Real Charging Time ---")
     rct.run()
 
-    print("\n--- Heptane Fluid Properties ---")
     hi.run()
 
 if __name__ == "__main__":

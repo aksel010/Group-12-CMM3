@@ -27,7 +27,7 @@ def run():
     backup_stdout = sys.stdout
     sys.stdout = io.StringIO()
     critical_current = oc.run() 
-    sys.stdout = backup_stdout() 
+    sys.stdout = backup_stdout
     
     results = calculate_charging_performance(critical_current, Capacity_cell)
 

@@ -115,7 +115,7 @@ def run():
             b=I_max, 
             tolerance=tolerance
         )
-        print(f"Bisection result: {critical_current_bisection}")
+        print(f"\nBisection result: {critical_current_bisection}")
     except NameError:
         print("Warning: bisection function not found, using manual implementation")
         critical_current_bisection = find_root_cubic_spline(I_array, delta_T_array)
@@ -160,8 +160,7 @@ def run():
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
 
-    print(f"Critical Current: {critical_current:.2f} A")
-    print(f"Newton result: {critical_current_newton}")
+    print(f"\n Critical Current: {critical_current:.2f} A")
 
     # Return the critical current so other modules can use it
     return critical_current
