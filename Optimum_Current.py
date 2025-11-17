@@ -77,17 +77,16 @@ def run():
     delta_T = []
     final_temperatures = []
     
-    print("Generating data points...")
+    print("Computing...")
     total_start_time = time.time()
     
     for idx, i in enumerate(np.arange(6, 13 , 1)):
-        I_0 = i
+        I = i
         iter_start = time.time()
-        print(f"  Computing for I = {I_0} A (point {idx+1})...", end=" ")
         
-        t_total = q_b / I_0  # total time [s]
-        t_i, T_i = Tb(dTb_dt, I_params(I_0, m_dot_ss), stepsize=0.2)
-        I_runs.append(I_0)
+        t_total = q_b / I  # total time [s]
+        t_i, T_i = Tb(dTb_dt, I_params(I, m_dot_ss), stepsize=0.2)
+        I_runs.append(I)
         delta_T.append(T_i[-1] - (T_b_max - rk4_error_val))
         final_temperatures.append(T_i[-1])
         
