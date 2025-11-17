@@ -130,7 +130,6 @@ def run():
     plt.title('ODE Solution Validation')
     plt.legend()
     plt.grid(True)
-    plt.show()
 
 if __name__ == "__main__":
     # Ensure H is defined in your config.py or elsewhere for stepsize

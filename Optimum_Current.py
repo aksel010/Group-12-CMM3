@@ -166,7 +166,6 @@ def run():
 
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.show()
 
     print(f"Critical Current: {critical_current:.2f} A")
     print(f"Newton result: {critical_current_newton}")

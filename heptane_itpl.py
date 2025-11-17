@@ -109,7 +109,6 @@ def run():
     ax2.legend()
     
     plt.tight_layout()
-    plt.show()
 
     # --- Print Example Calculation ---
     mu_test = mu_func(T_test)

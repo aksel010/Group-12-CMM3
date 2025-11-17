@@ -37,6 +37,7 @@ def main():
     print("\n--- Heptane Fluid Properties ---")
     hi.run()
 
+    plt.show()
     print("\n✓ All computations and plots complete!")
 
 if __name__ == "__main__":
