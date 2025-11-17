@@ -102,7 +102,7 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
 
 def run():
     if I_store[-1] == 0:
-        I_store.append(50)
+        I_store.append(30)
     Q_gen = I_store[-1]**2 * R_b      
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, M_DOT
@@ -156,3 +156,4 @@ def get_steady_state_values():
 
 if __name__ == "__main__":
     run()
+    
