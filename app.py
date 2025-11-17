@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+import threading
+import queue
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -31,6 +33,10 @@ class CMM3App(tk.Tk):
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
+        
+        # Queue for thread communication
+        self.result_queue = queue.Queue()
+        self.running = False
 
     def create_widgets(self):
         # Title
@@ -65,11 +71,17 @@ class CMM3App(tk.Tk):
                                   command=self.run_analysis)
         self.run_btn.grid(row=4, column=0, columnspan=2, pady=15, sticky="ew")
         
+        # Progress bar
+        self.progress_frame = ttk.Frame(self.input_frame)
+        self.progress_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=5)
+        self.progress_bar = ttk.Progressbar(self.progress_frame, mode='indeterminate', length=250)
+        self.progress_label = ttk.Label(self.progress_frame, text="", font=("Arial", 9))
+        
         # Results display
-        ttk.Label(self.input_frame, text="Key Results:", font=("Arial", 11, "bold")).grid(row=5, column=0, columnspan=2, sticky="w", pady=(15,5))
+        ttk.Label(self.input_frame, text="Key Results:", font=("Arial", 11, "bold")).grid(row=6, column=0, columnspan=2, sticky="w", pady=(15,5))
         self.results_text = tk.Text(self.input_frame, height=12, width=30, wrap="word", font=("Courier", 9))
-        self.results_text.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=5)
-        self.input_frame.grid_rowconfigure(6, weight=1)
+        self.results_text.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=5)
+        self.input_frame.grid_rowconfigure(7, weight=1)
         self.input_frame.grid_columnconfigure(1, weight=1)
 
         # Top right: Outputs and Graphs
@@ -107,25 +119,53 @@ class CMM3App(tk.Tk):
         """Helper function to log messages to diagnostics"""
         self.diagnostics_text.insert("end", message + "\n")
         self.diagnostics_text.see("end")
-        self.update_idletasks()
+
+    def update_progress(self, message):
+        """Update progress label"""
+        self.progress_label.config(text=message)
 
     def run_analysis(self):
-        """Main analysis execution function"""
+        """Start analysis in a separate thread"""
+        if self.running:
+            messagebox.showwarning("Analysis Running", "An analysis is already in progress.")
+            return
+            
         try:
             threshold = float(self.threshold_entry.get())
         except ValueError:
             messagebox.showerror("Input Error", "Threshold must be a float (e.g., 1e-6)")
             return
 
-        self.log("\n" + "="*100)
-        self.log("[STARTING] Complete analysis run...")
-        self.log("="*100)
+        self.running = True
         self.run_btn.config(state="disabled", text="Running...")
         self.results_text.delete("1.0", "end")
+        
+        # Show progress bar
+        self.progress_bar.pack(side="left", padx=5)
+        self.progress_label.pack(side="left", padx=5)
+        self.progress_bar.start(10)
+        self.update_progress("Initializing...")
+        
+        # Start analysis in separate thread
+        analysis_thread = threading.Thread(target=self.perform_analysis, args=(threshold,), daemon=True)
+        analysis_thread.start()
+        
+        # Check for results periodically
+        self.check_results()
 
+    def perform_analysis(self, threshold):
+        """Main analysis execution function (runs in separate thread)"""
+        result = {"success": False, "data": {}, "error": None}
+        
         try:
+            self.result_queue.put({"type": "log", "message": "\n" + "="*100})
+            self.result_queue.put({"type": "log", "message": "[STARTING] Complete analysis run..."})
+            self.result_queue.put({"type": "log", "message": "="*100})
+            
             # Optimum Current Convergence
-            self.log("\n[1/6] Running Optimum Current convergence loop...")
+            self.result_queue.put({"type": "progress", "message": "Step 1/6: Optimum Current..."})
+            self.result_queue.put({"type": "log", "message": "\n[1/6] Running Optimum Current convergence loop..."})
+            
             I_store = []
             oc_result = oc.run()
             current = oc_result['critical'][0]
@@ -140,102 +180,174 @@ class CMM3App(tk.Tk):
                 iteration += 1
                 if len(I_store)>1 and abs(I_store[-1] - I_store[-2]) < threshold:
                     converged = True
-                if iteration > 100:  # Safety break
-                    self.log("      Warning: Max iterations reached")
+                if iteration > 100:
+                    self.result_queue.put({"type": "log", "message": "      Warning: Max iterations reached"})
                     break
             
             optimum_current = I_store[-1]
-            self.log(f"      Converged after {len(I_store)} iterations")
-            self.log(f"      Optimum Current: {optimum_current:.4f} A")
-            self.results_text.insert("end", f"Optimum Current:\n  {optimum_current:.4f} A\n\n")
+            self.result_queue.put({"type": "log", "message": f"      Converged after {len(I_store)} iterations"})
+            self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A"})
+            self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A\n\n"})
 
             # ODE Solution
-            self.log("\n[2/6] Solving ODE (RK4 vs SciPy)...")
+            self.result_queue.put({"type": "progress", "message": "Step 2/6: Solving ODE..."})
+            self.result_queue.put({"type": "log", "message": "\n[2/6] Solving ODE (RK4 vs SciPy)..."})
             ode_data = ODE.run()
             t_rk, T_rk = ode_data['rk4']
             t_scipy, T_scipy = ode_data['scipy']
-            self.log(f"      ODE solved: {len(t_rk)} RK4 points, {len(t_scipy)} SciPy points")
-            self.results_text.insert("end", f"ODE Solution:\n  RK4: {len(t_rk)} points\n  SciPy: {len(t_scipy)} points\n\n")
+            self.result_queue.put({"type": "log", "message": f"      ODE solved: {len(t_rk)} RK4 points, {len(t_scipy)} SciPy points"})
+            self.result_queue.put({"type": "result", "message": f"ODE Solution:\n  RK4: {len(t_rk)} points\n  SciPy: {len(t_scipy)} points\n\n"})
 
             # Mass Flowrate
-            self.log("\n[3/6] Computing mass flowrate...")
+            self.result_queue.put({"type": "progress", "message": "Step 3/6: Mass flowrate..."})
+            self.result_queue.put({"type": "log", "message": "\n[3/6] Computing mass flowrate..."})
             mf_data = mf.run()
-            self.log(f"      Mass flowrate computed")
-            self.results_text.insert("end", f"Mass Flowrate:\n  Computed successfully\n\n")
+            self.result_queue.put({"type": "log", "message": f"      Mass flowrate computed"})
+            self.result_queue.put({"type": "result", "message": f"Mass Flowrate:\n  Computed successfully\n\n"})
 
             # RK4 Error Analysis
-            self.log("\n[4/6] Performing RK4 error analysis...")
+            self.result_queue.put({"type": "progress", "message": "Step 4/6: RK4 error..."})
+            self.result_queue.put({"type": "log", "message": "\n[4/6] Performing RK4 error analysis..."})
             rk4e.run()
-            self.log("      RK4 error analysis complete")
+            self.result_queue.put({"type": "log", "message": "      RK4 error analysis complete"})
 
             # Real Charging Time
-            self.log("\n[5/6] Computing real charging time...")
+            self.result_queue.put({"type": "progress", "message": "Step 5/6: Charging time..."})
+            self.result_queue.put({"type": "log", "message": "\n[5/6] Computing real charging time..."})
             rct.run()
-            self.log("      Real charging time computed")
+            self.result_queue.put({"type": "log", "message": "      Real charging time computed"})
 
             # Heptane Properties
-            self.log("\n[6/6] Analyzing heptane fluid properties...")
+            self.result_queue.put({"type": "progress", "message": "Step 6/6: Heptane..."})
+            self.result_queue.put({"type": "log", "message": "\n[6/6] Analyzing heptane fluid properties..."})
             hi_data = hi.run()
-            self.log("      Heptane properties analyzed")
+            self.result_queue.put({"type": "log", "message": "      Heptane properties analyzed"})
 
             # Optimum current data for plotting
             oc_data = oc.run()
 
-            # Create plots
-            self.log("\n[PLOTTING] Generating visualization...")
-            self.fig.clf()
-            self.fig.suptitle('Group 12 - CMM3 Complete Analysis', fontsize=18, fontweight='bold')
+            # Store results
+            result["success"] = True
+            result["data"] = {
+                "ode_data": ode_data,
+                "mf_data": mf_data,
+                "oc_data": oc_data
+            }
             
-            # Plot 1: ODE Solution
-            ax1 = self.fig.add_subplot(131)
-            ax1.plot(t_rk, T_rk, 'b--', label="RK4", linewidth=1.5)
-            ax1.plot(t_scipy, T_scipy, 'r-', label="SciPy LSODA", linewidth=2, alpha=0.7)
-            ax1.set_xlabel('Time (s)', fontsize=10)
-            ax1.set_ylabel('Battery Temperature Tb (K)', fontsize=10)
-            ax1.set_title('ODE Solution Validation', fontsize=11, fontweight='bold')
-            ax1.legend(fontsize=9)
-            ax1.grid(True, alpha=0.3)
-
-            # Plot 2: Mass Flowrate
-            ax2 = self.fig.add_subplot(132)
-            ax2.plot(mf_data['mass_flow'], mf_data['residuals'], 'b-', linewidth=2)
-            ax2.axhline(0, color='k', linestyle='--', linewidth=1)
-            ax2.set_xlabel('Mass Flow Rate (kg/s)', fontsize=10)
-            ax2.set_ylabel('Pressure Residual (Pa)', fontsize=10)
-            ax2.set_title('Pressure Balance Residual', fontsize=11, fontweight='bold')
-            ax2.grid(True, alpha=0.3)
-
-            # Plot 3: Optimum Current
-            ax3 = self.fig.add_subplot(133)
-            I_smooth, delta_T_smooth = oc_data['smooth']
-            critical_current, critical_y = oc_data['critical']
-            ax3.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline')
-            ax3.plot(critical_current, critical_y, 'ro', markersize=10, 
-                    label=f'Critical: {critical_current:.1f} A', zorder=6)
-            ax3.axhline(0, color='red', linestyle='--', linewidth=1)
-            ax3.set_xlabel('Current (A)', fontsize=10)
-            ax3.set_ylabel('Delta T (K)', fontsize=10)
-            ax3.set_title('Optimum Current Analysis', fontsize=11, fontweight='bold')
-            ax3.legend(fontsize=9)
-            ax3.grid(True, alpha=0.3)
-
-            self.fig.tight_layout(rect=[0, 0, 1, 0.96])
-            self.canvas.draw()
-            
-            self.log("      Plots generated successfully")
-            self.log("\n" + "="*100)
-            self.log("[COMPLETE] All computations and visualizations finished successfully!")
-            self.log("="*100 + "\n")
-            
-            self.results_text.insert("end", "Status: COMPLETE")
+            self.result_queue.put({"type": "progress", "message": "Generating plots..."})
+            self.result_queue.put({"type": "log", "message": "\n[PLOTTING] Generating visualization..."})
 
         except Exception as e:
-            self.log(f"\n[ERROR] Analysis failed: {str(e)}")
-            self.log(f"        {type(e).__name__}: {e}")
-            messagebox.showerror("Analysis Error", f"An error occurred:\n{str(e)}")
+            result["error"] = str(e)
+            self.result_queue.put({"type": "log", "message": f"\n[ERROR] Analysis failed: {str(e)}"})
+            self.result_queue.put({"type": "log", "message": f"        {type(e).__name__}: {e}"})
         
-        finally:
-            self.run_btn.config(state="normal", text="Run Complete Analysis")
+        # Send final result
+        self.result_queue.put({"type": "complete", "result": result})
+
+    def check_results(self):
+        """Check queue for results from analysis thread"""
+        try:
+            while True:
+                message = self.result_queue.get_nowait()
+                
+                if message["type"] == "log":
+                    self.log(message["message"])
+                    
+                elif message["type"] == "progress":
+                    self.update_progress(message["message"])
+                    
+                elif message["type"] == "result":
+                    self.results_text.insert("end", message["message"])
+                    
+                elif message["type"] == "complete":
+                    self.handle_completion(message["result"])
+                    return
+                    
+        except queue.Empty:
+            pass
+        
+        # Check again after 100ms
+        if self.running:
+            self.after(100, self.check_results)
+
+    def handle_completion(self, result):
+        """Handle completion of analysis"""
+        # Stop progress bar
+        self.progress_bar.stop()
+        self.progress_bar.pack_forget()
+        self.progress_label.pack_forget()
+        
+        self.running = False
+        self.run_btn.config(state="normal", text="Run Complete Analysis")
+        
+        if result["error"]:
+            messagebox.showerror("Analysis Error", f"An error occurred:\n{result['error']}")
+            self.log("\n" + "="*100)
+            self.log("[FAILED] Analysis completed with errors.")
+            self.log("="*100 + "\n")
+            return
+        
+        if result["success"]:
+            try:
+                # Extract data
+                ode_data = result["data"]["ode_data"]
+                mf_data = result["data"]["mf_data"]
+                oc_data = result["data"]["oc_data"]
+                
+                t_rk, T_rk = ode_data['rk4']
+                t_scipy, T_scipy = ode_data['scipy']
+                
+                # Create plots
+                self.fig.clf()
+                self.fig.suptitle('Group 12 - CMM3 Complete Analysis', fontsize=18, fontweight='bold')
+                
+                # Plot 1: ODE Solution
+                ax1 = self.fig.add_subplot(131)
+                ax1.plot(t_rk, T_rk, 'b--', label="RK4", linewidth=1.5)
+                ax1.plot(t_scipy, T_scipy, 'r-', label="SciPy LSODA", linewidth=2, alpha=0.7)
+                ax1.set_xlabel('Time (s)', fontsize=10)
+                ax1.set_ylabel('Battery Temperature Tb (K)', fontsize=10)
+                ax1.set_title('ODE Solution Validation', fontsize=11, fontweight='bold')
+                ax1.legend(fontsize=9)
+                ax1.grid(True, alpha=0.3)
+
+                # Plot 2: Mass Flowrate
+                ax2 = self.fig.add_subplot(132)
+                ax2.plot(mf_data['mass_flow'], mf_data['residuals'], 'b-', linewidth=2)
+                ax2.axhline(0, color='k', linestyle='--', linewidth=1)
+                ax2.set_xlabel('Mass Flow Rate (kg/s)', fontsize=10)
+                ax2.set_ylabel('Pressure Residual (Pa)', fontsize=10)
+                ax2.set_title('Pressure Balance Residual', fontsize=11, fontweight='bold')
+                ax2.grid(True, alpha=0.3)
+
+                # Plot 3: Optimum Current
+                ax3 = self.fig.add_subplot(133)
+                I_smooth, delta_T_smooth = oc_data['smooth']
+                critical_current, critical_y = oc_data['critical']
+                ax3.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline')
+                ax3.plot(critical_current, critical_y, 'ro', markersize=10, 
+                        label=f'Critical: {critical_current:.1f} A', zorder=6)
+                ax3.axhline(0, color='red', linestyle='--', linewidth=1)
+                ax3.set_xlabel('Current (A)', fontsize=10)
+                ax3.set_ylabel('Delta T (K)', fontsize=10)
+                ax3.set_title('Optimum Current Analysis', fontsize=11, fontweight='bold')
+                ax3.legend(fontsize=9)
+                ax3.grid(True, alpha=0.3)
+
+                self.fig.tight_layout(rect=[0, 0, 1, 0.96])
+                self.canvas.draw()
+                
+                self.log("      Plots generated successfully")
+                self.log("\n" + "="*100)
+                self.log("[COMPLETE] All computations and visualizations finished successfully!")
+                self.log("="*100 + "\n")
+                
+                self.results_text.insert("end", "Status: COMPLETE")
+                
+            except Exception as e:
+                self.log(f"\n[ERROR] Failed to generate plots: {str(e)}")
+                messagebox.showerror("Plotting Error", f"Failed to generate plots:\n{str(e)}")
 
 if __name__ == "__main__":
     app = CMM3App()

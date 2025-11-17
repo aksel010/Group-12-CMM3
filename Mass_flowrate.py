@@ -103,16 +103,12 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
 
     # ---- Compute resulting coolant temperature ----
     Cp_c_in = Cp_func(T_in)
-    T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
+    T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero  
     T_c_avg_K = (T_in + T_c_out_K) / 2
 
     # ---- Ensure physically meaningful m_dot (no runaway heating) ----
-    T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero        m_dot += 1e-7  
-        T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero        T_c_avg_K = (T_in + T_c_out_K) / 2
-
-        if m_dot == m_dot_limit:
-            print("Mass flowrate limit reached.")
-            break
+    if m_dot == m_dot_limit:
+        print("Mass flowrate limit reached.")
 
     # Heat transfer coefficient at steady state
     h_ss = calculate_h(T_c_avg_K)
