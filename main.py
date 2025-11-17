@@ -43,9 +43,6 @@ def main():
     print("\n--- Real Charging Time ---")
     rct.run()
 
-    print("\n--- Cooling Analysis ---")
-    ca.run()
-
     print("\n--- Heptane Fluid Properties ---")
     hi.run()
 

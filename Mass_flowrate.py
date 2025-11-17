@@ -111,28 +111,12 @@ def run():
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, M_DOT
     )
-
-    print("\n" + "="*50)
-    print("      SINGLE-CELL STEADY-STATE FLOW & THERMAL SOLVER")
-    print("="*50)
-    print(f"Cell Heat Generation (Q_gen): {Q_gen} W")
-    print(f"Coolant Inlet Temperature (T_c,in): {T_in:.2f} K")
-    print("-----------------------------------------")
     
     if m_dot_ss > 0:
         print(" Steady-State Operating Point Found")
         print("-----------------------------------------")
         print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.8f} kg/s")
         print(f"Average Coolant Temperature (T_c,avg): {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
-        print(f"Heat Transfer Coefficient (h): {h_ss:.2f} W/(m²·K)")
-        
-        # Calculate the pressure values for comparison
-        P_pump_ss = pump_head_curve(m_dot_ss, T_c_avg_K)
-        P_system_ss = system_head_loss_calc(m_dot_ss, T_c_avg_K)
-        print("\nHydraulic Balance Check:")
-        print(f"Supplied Pressure Drop (dP_pump): {P_pump_ss:.2f} Pa")
-        print(f"Channel Head Loss (dP_system): {P_system_ss:.2f} Pa")
-        print(f"Residual (dP_pump - dP_system): {P_pump_ss - P_system_ss:.2e} Pa")
         
     else:
         print(" Calculation failed. Solver did not converge or found non-physical flow.")
@@ -159,34 +143,4 @@ def get_steady_state_values():
 
 if __name__ == "__main__":
     run()
-
-    # Range of currents to simulate (A)
-    I_values = np.linspace(2, 20, 19)  # 2A to 20A in 1A steps
-
-    # Arrays to store results
-    m_dot_values = []
-
-    for I in I_values:
-        # Update the last I_store value (optional, depends on your setup)
-        I_store[-1] = I
-        
-        # Compute heat generation
-        Q_gen = I**2 * R_b
-        
-        # Compute steady-state mass flow rate
-        m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(Q_gen, M_DOT)
-        
-        # Store
-        m_dot_values.append(m_dot_ss)
-
-    # Convert to numpy arrays for plotting
-    m_dot_values = np.array(m_dot_values)
-
-    # Plot
-    plt.figure(figsize=(8,5))
-    plt.plot(I_values, m_dot_values, 'o-', color='blue', markersize=5)
-    plt.xlabel("Current (A)")
-    plt.ylabel("Steady-State Mass Flow Rate (kg/s)")
-    plt.title("Steady-State Mass Flow Rate vs Current")
-    plt.grid(True)
 
