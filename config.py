@@ -26,7 +26,7 @@ I_Threshold = 1e-6
 
 
 T_b_max = 40 + 273.13  # K 
-T_in = 15 + 273.13  # K
+T_in = 27 + 273.13  # K
 
 # Channel properties
 n = 5  # number of branches

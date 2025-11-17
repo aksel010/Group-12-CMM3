@@ -28,7 +28,6 @@ def compute_optimum_current(threshold=I_Threshold):
 def main():
     print("==== Group 12 - CMM3 Consolidated Results ====\n")
     
-    print("\n--- BTMS (ODE) Optimization ---")
     ODE.run()
 
     print("\n--- RK4 Error Analysis ---")
