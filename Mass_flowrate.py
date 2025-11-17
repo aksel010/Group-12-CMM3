@@ -59,7 +59,7 @@ def df(m_dot):
     
     return (f_x_plus_h - f_x) / H
 
-def calculate_steady_state_mass_flow(Q_gen, T_c_in, guess_m_dot):
+def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
     """
     Finds the steady-state mass flow rate (m_dot_ss) and calculates
     the resulting thermal properties (h, Tc_avg).
@@ -105,7 +105,7 @@ def run():
         I_store.append(50)
     Q_gen = I_store[-1]**2 * R_b      
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
-        Q_gen, T_c_in_K, M_DOT
+        Q_gen, M_DOT
     )
 
     print("\n" + "="*50)
@@ -149,9 +149,8 @@ def get_steady_state_values():
     if I_store[-1] == 0:
         I_store.append(I_0)
     Q_gen = I_store[-1]**2 * R_b
-    T_c_in_K = T_in
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
-        Q_gen, T_c_in_K, M_DOT
+        Q_gen, M_DOT
     )
     return m_dot_ss, T_c_avg_K, h_ss
 
