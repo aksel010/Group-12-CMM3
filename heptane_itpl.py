@@ -73,6 +73,7 @@ def run():
     mu_values = mu_func(test_T)
     Cp_values = Cp_func(test_T)
     lambda_values = lambda_func(test_T)
+    rho_values = rho_func(test_T)  # ← ADD THIS LINE!
     
     # --- Subplot 2: Heat Transfer Coefficient (h) ---
     T_test = 330.0
@@ -82,6 +83,7 @@ def run():
             'mu': (test_T, mu_values),
             'rho': (test_T, rho_values),
             'Cp': (test_T, Cp_values),
+            'lambda': (test_T, lambda_values),
             'h': (test_T, h_values)
         }
 
