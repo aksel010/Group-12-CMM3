@@ -135,3 +135,29 @@ def calculate_h(T: float | np.ndarray) -> float | np.ndarray:
     Nu = 0.023 * (Re ** 0.8) * (Pr ** DITTUS_BOELTER_EXPONENT)
 
     return (Nu * lam) / D
+
+#plotting
+def run():
+    
+    test_T = np.linspace(T_data.min(), T_data.max(), 100)
+    
+    h_values = calculate_h(test_T) # Vectorized call
+    mu_values = mu_func(test_T)
+    Cp_values = Cp_func(test_T)
+    lambda_values = lambda_func(test_T)
+    rho_values = rho_func(test_T)  # ← ADD THIS LINE!
+    
+    # --- Subplot 2: Heat Transfer Coefficient (h) ---
+    T_test = 330.0
+    h_test = calculate_h(T_test)
+    
+    return {
+            'mu': (test_T, mu_values),
+            'rho': (test_T, rho_values),
+            'Cp': (test_T, Cp_values),
+            'lambda': (test_T, lambda_values),
+            'h': (test_T, h_values)
+        }
+
+if __name__ == "__main__":
+    run()
