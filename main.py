@@ -14,12 +14,13 @@ import heptane_itpl as hi
 
 def compute_optimum_current(threshold=I_Threshold):
     I_store.clear()  # Start fresh for each run
-    print("\n--- Optimum Current Analysis ---")
-    current = oc.run()  # first value
+    result = oc.run()  # first value - returns a dict
+    current = result['critical'][0]  # Extract the critical current value
     I_store.append(current)
     
     while True:
-        new_current = oc.run()
+        result = oc.run()
+        new_current = result['critical'][0]  # Extract the critical current value
         I_store.append(new_current)
         # Only check convergence after there are at least 2 values
         if len(I_store) > 1 and abs(I_store[-1] - I_store[-2]) < threshold:
