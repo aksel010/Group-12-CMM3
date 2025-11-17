@@ -91,7 +91,6 @@ def run():
         final_temperatures.append(T_i[-1])
         
         iter_time = time.time() - iter_start
-        print(f"done in {iter_time:.2f}s")
     
     total_time = time.time() - total_start_time
     print(f"\nTotal data generation time: {total_time:.2f} seconds")
