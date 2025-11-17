@@ -21,11 +21,12 @@ q_b =  Capacity_cell * 3600  #As
 V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
 I_0 = 15 # A initial current
-I_store = [100, 0]
+I_store = [0]
+I_Threshold = 1e-6
 
 
 T_b_max = 40 + 273.13  # K 
-T_in = 15 + 273.13  # K
+T_in = 27 + 273.13  # K
 
 # Channel properties
 n = 5  # number of branches

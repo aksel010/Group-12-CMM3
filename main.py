@@ -1,5 +1,4 @@
 # main.py — Group-12-CMM3 Consolidated Execution
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,10 +12,22 @@ import Real_Charging_Time as rct
 import cooling_analysis as ca
 import heptane_itpl as hi
 
+def compute_optimum_current(threshold=I_Threshold):
+    I_store.clear()  # Start fresh for each run
+    current = oc.run()  # first value
+    I_store.append(current)
+
+    while True:
+        new_current = oc.run()
+        I_store.append(new_current)
+        # Only check convergence after there are at least 2 values
+        if len(I_store) > 1 and abs(I_store[-1] - I_store[-2]) < threshold:
+            break
+    return I_store
+
 def main():
     print("==== Group 12 - CMM3 Consolidated Results ====\n")
     
-    print("\n--- BTMS (ODE) Optimization ---")
     ODE.run()
 
     print("\n--- RK4 Error Analysis ---")
@@ -31,17 +42,15 @@ def main():
     print("\n--- Real Charging Time ---")
     rct.run()
 
-    print("\n--- Cooling Analysis ---")
-    ca.run()
-
     print("\n--- Heptane Fluid Properties ---")
     hi.run()
 
-    plt.show()
-    print("\n✓ All computations and plots complete!")
-
 if __name__ == "__main__":
-    while abs(I_store[-1]-I_store[-2]) >= 10e-6:
-        main()
-        print (I_store)
+    main()
+    I_store = compute_optimum_current(threshold=1e-6)
+    print(f'Model iterated {len(I_store)} times')
+    print(I_store)
+    print("\n✓ All computations and plots complete!")
+    
+    plt.show()
     

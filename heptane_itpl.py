@@ -67,7 +67,6 @@ def calculate_h(T: float | np.ndarray) -> float | np.ndarray:
 #plotting
 def run():
     
-    print(f"System Constant C_Re = {C_RE:.2f} kg/(m·s)\n")
     test_T = np.linspace(T_data.min(), T_data.max(), 100)
     
     h_values = calculate_h(test_T) # Vectorized call
@@ -75,7 +74,6 @@ def run():
     Cp_values = Cp_func(test_T)
     lambda_values = lambda_func(test_T)
     
-    plt.style.use('seaborn-v0_8-darkgrid')
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
     
     # --- Subplot 1: Fluid Properties ---
@@ -99,7 +97,7 @@ def run():
     T_test = 330.0
     h_test = calculate_h(T_test)
     
-    ax2.plot(test_T, h_values, label=f'h(T) at $\dot{{m}}$={M_DOT} kg/s, D={D*1000:.0f} mm', color='teal')
+    ax2.plot(test_T, h_values, label=f'h(T) at $\\dot{{m}}$={M_DOT} kg/s, D={D*1000:.0f} mm', color='teal')
     ax2.plot(T_test, h_test, 'o', color='red', label=f'Test Point ({T_test} K, {h_test:.0f} W/m²K)')
     
     ax2.set_title('Heat Transfer Coefficient vs. Temperature for Liquid n-Heptane')
@@ -109,14 +107,6 @@ def run():
     ax2.legend()
     
     plt.tight_layout()
-
-    # --- Print Example Calculation ---
-    mu_test = mu_func(T_test)
-    Re_test = C_RE / mu_test
-    print(f"\n--- Example Calculation at T = {T_test:.1f} K ---")
-    print(f"Dynamic Viscosity (mu): {mu_test:.6f} Pa·s")
-    print(f"Reynolds Number (Re): {Re_test:.0f}")
-    print(f"Heat Transfer Coefficient (h): {h_test:.2f} W/(m^2·K)")
 
 if __name__ == "__main__":
     run()
