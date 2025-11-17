@@ -89,9 +89,11 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
     T_c_avg_K = (T_in + T_c_out_K) / 2
 
     #Check that the m_dot value makes sense
-    while m_dot <= m_dot_limit and T_c_out_K > T_b_max:
+    while m_dot <= m_dot_limit and T_c_avg_K > (T_in + T_b_max) / 2:
         print("adjusting cooling to match additional heating")
         m_dot += 0.0000001
+        T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
+        T_c_avg_K = (T_in + T_c_out_K) / 2
         if m_dot == m_dot_limit:
             print ("Mass flowrate limit reached")
 
@@ -105,7 +107,7 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
 
 def run():
     if I_store[-1] == 0:
-        I_store.append(30)
+        I_store.append(I_0)
     Q_gen = I_store[-1]**2 * R_b      
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, M_DOT
@@ -121,7 +123,7 @@ def run():
     if m_dot_ss > 0:
         print(" Steady-State Operating Point Found")
         print("-----------------------------------------")
-        print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.5f} kg/s")
+        print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.8f} kg/s")
         print(f"Average Coolant Temperature (T_c,avg): {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
         print(f"Heat Transfer Coefficient (h): {h_ss:.2f} W/(m²·K)")
         
@@ -159,3 +161,35 @@ def get_steady_state_values():
 
 if __name__ == "__main__":
     run()
+
+    # Range of currents to simulate (A)
+    I_values = np.linspace(2, 20, 19)  # 2A to 20A in 1A steps
+
+    # Arrays to store results
+    m_dot_values = []
+
+    for I in I_values:
+        # Update the last I_store value (optional, depends on your setup)
+        I_store[-1] = I
+        
+        # Compute heat generation
+        Q_gen = I**2 * R_b
+        
+        # Compute steady-state mass flow rate
+        m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(Q_gen, M_DOT)
+        
+        # Store
+        m_dot_values.append(m_dot_ss)
+
+    # Convert to numpy arrays for plotting
+    m_dot_values = np.array(m_dot_values)
+
+    # Plot
+    plt.figure(figsize=(8,5))
+    plt.plot(I_values, m_dot_values, 'o-', color='blue', markersize=5)
+    plt.xlabel("Current (A)")
+    plt.ylabel("Steady-State Mass Flow Rate (kg/s)")
+    plt.title("Steady-State Mass Flow Rate vs Current")
+    plt.grid(True)
+    plt.show()
+
