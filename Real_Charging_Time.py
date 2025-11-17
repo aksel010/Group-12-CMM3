@@ -23,6 +23,7 @@ def calculate_charging_performance(critical_current, battery_capacity_Ah, effici
 # Calculate and display results
 def run():
     # Get critical current from Optimum_Current module
+    print("Computing...")
     import Optimum_Current as oc
     backup_stdout = sys.stdout
     sys.stdout = io.StringIO()

@@ -14,6 +14,7 @@ import heptane_itpl as hi
 
 def compute_optimum_current(threshold=I_Threshold):
     I_store.clear()  # Start fresh for each run
+    print("\n--- Optimum Current Analysis ---")
     current = oc.run()  # first value
     I_store.append(current)
 
@@ -35,9 +36,6 @@ def main():
 
     print("\n--- Mass Flowrate Solver ---")
     mf.run()
-
-    print("\n--- Optimum Current Analysis ---")
-    I_store.append(oc.run())
 
     print("\n--- Real Charging Time ---")
     rct.run()

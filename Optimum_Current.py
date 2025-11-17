@@ -70,8 +70,6 @@ def run():
     
     rk4_error_val = get_rk4_error_val()
     
-    print(f"rk4_error_val: {rk4_error_val}")
-    
     # Analysis - generate data points
     I_runs = []
     delta_T = []
