@@ -40,7 +40,7 @@ def main():
     print("\n✓ All computations and plots complete!")
 
 if __name__ == "__main__":
-    while abs(I_store[-1]-I_store[-2]) >= 0.1:
+    while abs(I_store[-1]-I_store[-2]) >= 10e-6:
         main()
         print (I_store)
     
