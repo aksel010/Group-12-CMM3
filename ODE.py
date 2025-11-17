@@ -105,11 +105,27 @@ def Tb_scipy(dTdt, params):
     
     # Use the dense output to get the solution at these time points
     T_sol = sol.sol(t_sol)[0] 
+
     
     return t_sol, T_sol
 
-# ------------------------------------------------------
-# plot results
+# Add this function block anywhere in your ODE.py file, 
+# ensuring it's after the definition of Tb_scipy.
+
+import pandas as pd
+import numpy as np
+
+def export_scipy_data(filename='RK4 solution.csv'):
+    t_sol, T_sol = Tb_scipy(dTb_dt, params_initial)
+    data = {
+        'Time (s)': t_sol,
+        'Temperature (K)': T_sol
+    }
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
+
+export_scipy_data()
+
 def run():
     t_rk, T_rk = Tb(dTb_dt, params_initial, stepsize=H)
     t_scipy, T_scipy = Tb_scipy(dTb_dt, params_initial)
