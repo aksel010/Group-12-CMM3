@@ -141,30 +141,14 @@ def run():
     residuals = delta_T_interpolated - delta_T_array
     rmse = np.sqrt(np.mean(residuals**2))
 
-    # Plot
-    plt.figure(figsize=(10, 6))
-    plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
-    I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
-    delta_T_smooth = [cubic_spline_interpolation(I_array, delta_T_array, I) for I in I_smooth] 
-
-    plt.plot(I_smooth, delta_T_smooth, 'r-', linewidth=2, label='Cubic Spline Interpolation')
-    plt.plot(critical_current, 0, 'ro', markersize=10, 
-            label=f'Critical Point: {critical_current:.1f} A', zorder=6)
-    plt.axhline(0, color='red', linestyle='--', linewidth=1)
-
-    plt.xlabel('Current (A)')
-    plt.ylabel('Delta T (K)')
-    plt.title('Critical Current Analysis - Cubic Spline Interpolation')
-    plt.legend()
-
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-
     print(f"Critical Current: {critical_current:.2f} A")
     print(f"Newton result: {critical_current_newton}")
 
     # Return the critical current so other modules can use it
-    return critical_current
+    return {critical_current,
+        'smooth': (I_smooth, delta_T_smooth),
+        'critical': (critical_current, 0)  # critical point coordinates
+    }
 
 if __name__ == "__main__":
     run()

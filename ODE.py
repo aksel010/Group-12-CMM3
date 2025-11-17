@@ -111,25 +111,14 @@ def Tb_scipy(dTdt, params):
 # ------------------------------------------------------
 # plot results
 def run():
-    # 1. Custom RK4 Solution (Your existing method)
     t_rk, T_rk = Tb(dTb_dt, params_initial, stepsize=H)
-    
-    # 2. SciPy Validation Solution (The new method)
     t_scipy, T_scipy = Tb_scipy(dTb_dt, params_initial)
-
-    plt.figure(figsize=(10, 6))
-
-    # Plot custom RK4
-    plt.plot(t_rk, T_rk, label=f'Custom RK4 (h={H}s)', color='blue', linestyle='--')
     
-    # Plot SciPy Solution
-    plt.plot(t_scipy, T_scipy, label='SciPy solve_ivp (LSODA)', color='red', linewidth=3, alpha=0.6)
-
-    plt.xlabel('t (s)')
-    plt.ylabel('Temperature of the Battery $T_b$ (K)')
-    plt.title('ODE Solution Validation')
-    plt.legend()
-    plt.grid(True)
+    # REMOVE all plt commands, RETURN data
+    return {
+        'rk4': (t_rk, T_rk),
+        'scipy': (t_scipy, T_scipy)
+    }
 
 if __name__ == "__main__":
     # Ensure H is defined in your config.py or elsewhere for stepsize

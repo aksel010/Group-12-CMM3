@@ -74,6 +74,7 @@ def run():
     Cp_values = Cp_func(test_T)
     lambda_values = lambda_func(test_T)
     
+    '''
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
     
     # --- Subplot 1: Fluid Properties ---
@@ -92,21 +93,17 @@ def run():
     lines2, labels2 = ax1_twin.get_legend_handles_labels()
     ax1.legend(lines + lines2, labels + labels2, loc='upper right')
     ax1.grid(True, linestyle='--', alpha=0.6)
-    
+    '''
     # --- Subplot 2: Heat Transfer Coefficient (h) ---
     T_test = 330.0
     h_test = calculate_h(T_test)
     
-    ax2.plot(test_T, h_values, label=f'h(T) at $\\dot{{m}}$={M_DOT} kg/s, D={D*1000:.0f} mm', color='teal')
-    ax2.plot(T_test, h_test, 'o', color='red', label=f'Test Point ({T_test} K, {h_test:.0f} W/m²K)')
-    
-    ax2.set_title('Heat Transfer Coefficient vs. Temperature for Liquid n-Heptane')
-    ax2.set_xlabel('Temperature (T) [K]')
-    ax2.set_ylabel('Heat Transfer Coefficient (h) [W/(m²·K)]')
-    ax2.grid(True, linestyle='--', alpha=0.6)
-    ax2.legend()
-    
-    plt.tight_layout()
+    return {
+            'mu': (test_T, mu_values),
+            'rho': (test_T, rho_values),
+            'Cp': (test_T, Cp_values),
+            'h': (test_T, h_values)
+        }
 
 if __name__ == "__main__":
     run()
