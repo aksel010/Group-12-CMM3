@@ -112,7 +112,7 @@ def run():
     print("      SINGLE-CELL STEADY-STATE FLOW & THERMAL SOLVER")
     print("="*50)
     print(f"Cell Heat Generation (Q_gen): {Q_gen} W")
-    print(f"Coolant Inlet Temperature (T_c,in): {T_c_in_K:.2f} K")
+    print(f"Coolant Inlet Temperature (T_c,in): {T_in:.2f} K")
     print("-----------------------------------------")
     
     if m_dot_ss > 0:
