@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 params_initial = (
     m_b,      # m [kg]
     C_b,      # cp_b [J/(kg·K)]
-    I_0,       # I [A]
+    7.1,       # I [A]
     DC_IR *24,        # R [Ω]
     A_s,     # A_s [m²]
     T_in,     # T_c_in [K]\
