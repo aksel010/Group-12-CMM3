@@ -143,12 +143,13 @@ def run():
 
     print(f"Critical Current: {critical_current:.2f} A")
     print(f"Newton result: {critical_current_newton}")
-
+    
+    # Generate smooth curve for plotting
+    I_smooth = np.linspace(I_array.min(), I_array.max(), 100)
+    delta_T_smooth = [current_profile(I_array, delta_T_array, I) for I in I_smooth]
+    
     # Return the critical current so other modules can use it
-    return {critical_current,
+    return {
         'smooth': (I_smooth, delta_T_smooth),
         'critical': (critical_current, 0)  # critical point coordinates
     }
-
-if __name__ == "__main__":
-    run()
