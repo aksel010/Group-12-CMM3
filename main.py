@@ -26,7 +26,7 @@ def main():
     mf.run()
 
     print("\n--- Optimum Current Analysis ---")
-    oc.run()
+    I_store.append(oc.run())
 
     print("\n--- Real Charging Time ---")
     rct.run()
@@ -36,8 +36,11 @@ def main():
 
     print("\n--- Heptane Fluid Properties ---")
     hi.run()
-    
+
     print("\n✓ All computations and plots complete!")
 
 if __name__ == "__main__":
-    main()
+    while abs(I_store[-1]-I_store[-2]) >= 0.1:
+        main()
+        print (I_store)
+    

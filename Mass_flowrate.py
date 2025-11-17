@@ -133,7 +133,9 @@ def get_steady_state_values():
     Returns the steady-state mass flow rate and related values.
     Call this instead of importing m_dot_ss directly to avoid circular imports.
     """
-    Q_gen = I_0**2 * R_b
+    if I_store[-1] == 0:
+        I_store.append(I_0)
+    Q_gen = I_store[-1]**2 * R_b
     T_c_in_K = T_in
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, T_c_in_K, M_DOT

@@ -20,7 +20,8 @@ Capacity_battery = Capacity_cell
 q_b =  Capacity_cell * 3600  #As 
 V_b = V_cell * n_cell
 R_b = DC_IR * n_cell  # Ohm total battery pack
-I_0 = 7.2 # A initial current
+I_0 = 20 # A initial current
+I_store = [100,0]
 
 
 T_b_max = 40 + 273.13  # K 
