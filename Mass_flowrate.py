@@ -90,7 +90,6 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
 
     #Check that the m_dot value makes sense
     while m_dot <= m_dot_limit and T_c_avg_K > (T_in + T_b_max) / 2:
-        print("adjusting cooling to match additional heating")
         m_dot += 0.0000001
         T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
         T_c_avg_K = (T_in + T_c_out_K) / 2

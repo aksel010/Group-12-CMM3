@@ -4,7 +4,7 @@ from scipy.integrate import solve_ivp
 import math
 
 from config import *
-from heptane_itpl import lambda_func, Cp_func, mu_func 
+from heptane_itpl import lambda_func, Cp_func, mu_func, rho_func
 from ODE import dTb_dt 
 
 def calculate_h(T: float | np.ndarray, m_dot: float) -> float | np.ndarray:
