@@ -14,6 +14,7 @@ import heptane_itpl as hi
 
 def compute_optimum_current(threshold=I_Threshold):
     I_store.clear()  # Start fresh for each run
+    print("\n--- Optimum Current Analysis ---")
     current = oc.run()  # first value
     I_store.append(current)
     
