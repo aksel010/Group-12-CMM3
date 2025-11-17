@@ -72,27 +72,8 @@ def run():
     mu_values = mu_func(test_T)
     Cp_values = Cp_func(test_T)
     lambda_values = lambda_func(test_T)
+    rho_values = rho_func(test_T)  # ← ADD THIS LINE!
     
-    '''
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-    
-    # --- Subplot 1: Fluid Properties ---
-    ax1.plot(test_T, mu_values, label=r'$\mu$ (Viscosity) [Pa·s]', color='blue')
-    ax1_twin = ax1.twinx()
-    ax1_twin.plot(test_T, Cp_values, label=r'$C_p$ (Specific Heat) [J/(kg·K)]', color='green', linestyle='--')
-    ax1_twin.plot(test_T, lambda_values, label=r'$\lambda$ (Thermal Conductivity) [W/(m·K)]', color='red', linestyle=':')
-    
-    ax1.set_title('Interpolated Fluid Properties of n-Heptane vs. Temperature')
-    ax1.set_xlabel('Temperature (T) [K]')
-    ax1.set_ylabel(r'Viscosity ($\mu$) [Pa$\cdot$s]', color='blue')
-    
-    ax1_twin.set_ylabel(r'$C_p$ [J/(kg·K)] and $\lambda$ [W/(m·K)]')
-    
-    lines, labels = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax1_twin.get_legend_handles_labels()
-    ax1.legend(lines + lines2, labels + labels2, loc='upper right')
-    ax1.grid(True, linestyle='--', alpha=0.6)
-    '''
     # --- Subplot 2: Heat Transfer Coefficient (h) ---
     T_test = 330.0
     h_test = calculate_h(T_test)
@@ -101,6 +82,7 @@ def run():
             'mu': (test_T, mu_values),
             'rho': (test_T, rho_values),
             'Cp': (test_T, Cp_values),
+            'lambda': (test_T, lambda_values),
             'h': (test_T, h_values)
         }
 
