@@ -175,7 +175,7 @@ if __name__ == "__main__":
         Q_gen = I**2 * R_b
         
         # Compute steady-state mass flow rate
-        m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(Q_gen, T_in, M_DOT)
+        m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(Q_gen, M_DOT)
         
         # Store
         m_dot_values.append(m_dot_ss)
