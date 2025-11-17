@@ -2,13 +2,6 @@ import numpy as np
 from config import *
 from ODE import Tb, dTb_dt, params_initial
 
-# -------------------------------------------------------------------------
-# SETUP: Define RK4 step size and compute full- and half-step solutions
-# -------------------------------------------------------------------------
-rk4_step = H  # RK4 integration step size from config
-T_fullstep, t_fullstep = Tb(dTb_dt, params_initial, stepsize=rk4_step)
-T_halfstep, t_halfstep = Tb(dTb_dt, params_initial, stepsize=rk4_step / 2)
-
 
 # -------------------------------------------------------------------------
 # FUNCTION: Estimate RK4 truncation error
@@ -22,6 +15,12 @@ def rk4_error():
         estimated_error : float
             Maximum estimated RK4 truncation error [K]
     """
+    # -------------------------------------------------------------------------
+    # SETUP: Define RK4 step size and compute full- and half-step solutions
+    # -------------------------------------------------------------------------
+    rk4_step = H  # RK4 integration step size from config
+    T_fullstep, t_fullstep = Tb(dTb_dt, params_initial, stepsize=rk4_step)
+    T_halfstep, t_halfstep = Tb(dTb_dt, params_initial, stepsize=rk4_step / 2)
     p = 4.0  # RK4 order
 
     # Reshape half-step solution to match full-step points
@@ -49,8 +48,8 @@ def get_rk4_error_val():
 # -------------------------------------------------------------------------
 def run():
     rk4_error_val = get_rk4_error_val()
-    print(f"Interpolation Step Size (H): {H:.6e}")
-    print(f"RK4 Integration Step Size: {rk4_step:.6e}")
+    print(f"Interpolation Step Size (H): {H}")
+    print(f"RK4 Integration Step Size: {H}")
     print(f"RK4 Truncation Error: {rk4_error_val:.6e} K")
 
 

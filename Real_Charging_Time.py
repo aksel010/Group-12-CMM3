@@ -26,7 +26,7 @@ def calculate_charging_performance(critical_current, battery_capacity_Ah, effici
     """
 
     # Compute C-rate at the critical current
-    C_rate_critical = critical_current / Capacity_cell
+    C_rate_critical = critical_current / battery_capacity_Ah
 
     # Theoretical minimum charging time in minutes (assuming full current)
     theoretical_min = 60 / C_rate_critical

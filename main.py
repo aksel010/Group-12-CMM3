@@ -92,6 +92,6 @@ ax3.set_title('Optimum Current Analysis', fontsize=12, fontweight='bold')
 ax3.legend(fontsize=9)
 ax3.grid(True, alpha=0.3)
 
-plt.tight_layout(rect=[0, 0, 1, 0.96])  # Leave space for suptitle
+plt.tight_layout(rect=(0, 0, 1, 0.96))  # Leave space for suptitle
 print("\n✓ All computations and plots complete!")
 plt.show()

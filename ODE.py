@@ -124,7 +124,6 @@ def export_scipy_data(filename='RK4 solution.csv'):
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
 
-export_scipy_data()
 
 def run():
     t_rk, T_rk = Tb(dTb_dt, params_initial, stepsize=H)

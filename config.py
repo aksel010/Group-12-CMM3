@@ -5,11 +5,11 @@ import numpy as np
 g = 9.81
 
 # NIMH battery properties
-"""Battery pack is made up of 48 L5 modules, such that one channel passes through 24 cellsc."""
+"""Battery pack is made up of 48 L5 modules, such that one channel passes through 24 cells."""
 n_cell = 240
-V_cell = 1.2  # V per cell
+V_cell = 1.2  # V per cell,
 Capacity_cell = 6  # Ah per cell
-Enery_cell =7.2  # Wh per cell
+Energy_cell = 7.2  # Wh per cell
 DC_IR = 2.5e-3  # Ohm per cell
 m_cell = 0.158 # test cell mass
 

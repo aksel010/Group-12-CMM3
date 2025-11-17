@@ -7,6 +7,7 @@ import queue
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -26,7 +27,7 @@ class CMM3App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Group-12-CMM3 Fast-Charge Academic Analysis")
-        self.geometry("1400x900")
+        self.state('zoomed')  # Maximize the window to fit the screen
         self.configure(bg="white")
         self.create_widgets()
         self.grid_rowconfigure(1, weight=3)
@@ -88,7 +89,7 @@ class CMM3App(tk.Tk):
         self.output_frame = ttk.LabelFrame(self, text="Analysis Outputs & Graphs", padding=(15,15))
         self.output_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=5)
         
-        self.fig = plt.Figure(figsize=(12,6), dpi=90)
+        self.fig = Figure(figsize=(12,6), dpi=90)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.output_frame)
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
         
@@ -158,6 +159,14 @@ class CMM3App(tk.Tk):
         result = {"success": False, "data": {}, "error": None}
         
         try:
+            # --- Pre-analysis module check ---
+            required_modules = {'oc', 'ODE', 'mf', 'rk4e', 'rct', 'hi'}
+            for mod_name in required_modules:
+                if mod_name not in globals():
+                    raise ImportError(f"Required analysis module '{mod_name}' failed to import. "
+                                      "Please check for errors in the module file or its dependencies.")
+
+
             self.result_queue.put({"type": "log", "message": "\n" + "="*100})
             self.result_queue.put({"type": "log", "message": "[STARTING] Complete analysis run..."})
             self.result_queue.put({"type": "log", "message": "="*100})
@@ -335,7 +344,7 @@ class CMM3App(tk.Tk):
                 ax3.legend(fontsize=9)
                 ax3.grid(True, alpha=0.3)
 
-                self.fig.tight_layout(rect=[0, 0, 1, 0.96])
+                self.fig.tight_layout(rect=(0, 0, 1, 0.96))
                 self.canvas.draw()
                 
                 self.log("      Plots generated successfully")
