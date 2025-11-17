@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 params_initial = (
     m_b,      # m [kg]
     C_b,      # cp_b [J/(kg·K)]
-    7.1,       # I [A]
+    I_0,       # I [A]
     DC_IR *24,        # R [Ω]
     A_s,     # A_s [m²]
     T_in,     # T_c_in [K]\
@@ -105,31 +105,36 @@ def Tb_scipy(dTdt, params):
     
     # Use the dense output to get the solution at these time points
     T_sol = sol.sol(t_sol)[0] 
+
     
     return t_sol, T_sol
 
-# ------------------------------------------------------
-# plot results
+# Add this function block anywhere in your ODE.py file, 
+# ensuring it's after the definition of Tb_scipy.
+
+import pandas as pd
+import numpy as np
+
+def export_scipy_data(filename='RK4 solution.csv'):
+    t_sol, T_sol = Tb_scipy(dTb_dt, params_initial)
+    data = {
+        'Time (s)': t_sol,
+        'Temperature (K)': T_sol
+    }
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
+
+export_scipy_data()
+
 def run():
-    # 1. Custom RK4 Solution (Your existing method)
     t_rk, T_rk = Tb(dTb_dt, params_initial, stepsize=H)
-    
-    # 2. SciPy Validation Solution (The new method)
     t_scipy, T_scipy = Tb_scipy(dTb_dt, params_initial)
-
-    plt.figure(figsize=(10, 6))
-
-    # Plot custom RK4
-    plt.plot(t_rk, T_rk, label=f'Custom RK4 (h={H}s)', color='blue', linestyle='--')
     
-    # Plot SciPy Solution
-    plt.plot(t_scipy, T_scipy, label='SciPy solve_ivp (LSODA)', color='red', linewidth=3, alpha=0.6)
-
-    plt.xlabel('t (s)')
-    plt.ylabel('Temperature of the Battery $T_b$ (K)')
-    plt.title('ODE Solution Validation')
-    plt.legend()
-    plt.grid(True)
+    # REMOVE all plt commands, RETURN data
+    return {
+        'rk4': (t_rk, T_rk),
+        'scipy': (t_scipy, T_scipy)
+    }
 
 if __name__ == "__main__":
     # Ensure H is defined in your config.py or elsewhere for stepsize

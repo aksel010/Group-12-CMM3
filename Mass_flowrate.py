@@ -119,12 +119,14 @@ def run():
     else:
         print(" Calculation failed. Solver did not converge or found non-physical flow.")
 
-    m = np.linspace(M_DOT, 0.02 , 1000)
-    plt.plot(m, [pressure_balance_couple(mi) for mi in m])
-    plt.axhline(0, color='k', linestyle='--')
-    plt.xlabel('Mass Flow Rate (kg/s)')     
-    plt.ylabel('Pressure Balance Residual (Pa)')
-    plt.title('Pressure Balance Residual vs Mass Flow Rate')
+    m = np.linspace(M_DOT, 0.02, 1000)
+    residuals = [pressure_balance_couple(mi) for mi in m]
+    
+    # REMOVE plotting, RETURN data
+    return {
+        'mass_flow': m,
+        'residuals': residuals
+    }
 
 def get_steady_state_values():
     """

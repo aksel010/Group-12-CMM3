@@ -23,14 +23,20 @@ def calculate_charging_performance(critical_current, battery_capacity_Ah, effici
 # Calculate and display results
 def run():
     # Get critical current from Optimum_Current module
-    import Optimum_Current as oc
-    backup_stdout = sys.stdout
-    sys.stdout = io.StringIO()
-    critical_current = oc.run() 
-    sys.stdout = backup_stdout
+    print("Computing...")
+    
+    # Get critical current from I_store (already calculated in main)
+    from config import I_store
+
+    if len(I_store) == 0:
+        print("Error: Optimum current not yet calculated!")
+        return
+    
+    critical_current = I_store[-1]  # Get the converged critical current
     
     results = calculate_charging_performance(critical_current, Capacity_cell)
 
+    print("\n--- Charging Performance Results ---")
     print(f"Optimum C-rate: {results['critical_C_rate']}C")
     print(f"Optimum charge time: {results['fastest_charge_min']} min")
     print(f"Recommended C-rate: {results['recommended_C_rate']} C ({results['recommended_charge_min']} min)")
