@@ -144,7 +144,6 @@ def run():
     plt.xlabel('Mass Flow Rate (kg/s)')     
     plt.ylabel('Pressure Balance Residual (Pa)')
     plt.title('Pressure Balance Residual vs Mass Flow Rate')
-    plt.show()
 
 def get_steady_state_values():
     """
@@ -191,5 +190,4 @@ if __name__ == "__main__":
     plt.ylabel("Steady-State Mass Flow Rate (kg/s)")
     plt.title("Steady-State Mass Flow Rate vs Current")
     plt.grid(True)
-    plt.show()
 
