@@ -54,7 +54,6 @@ def find_root_cubic_spline(I_array, delta_T_array):
 
 
 def run():
-    print("Starting simulation...")
     
     # Get steady state values (only computed once, when run() is called)
     steady_state_result = get_steady_state_values()
@@ -71,7 +70,7 @@ def run():
     
     rk4_error_val = get_rk4_error_val()
     
-    print(f"m_dot_ss: {m_dot_ss}, rk4_error_val: {rk4_error_val}")
+    print(f"rk4_error_val: {rk4_error_val}")
     
     # Analysis - generate data points
     I_runs = []
@@ -84,7 +83,7 @@ def run():
     for idx, i in enumerate(np.arange(6, 13 , 1)):
         I_0 = i
         iter_start = time.time()
-        print(f"  Computing for I = {I_0} A (point {idx+1}/20)...", end=" ")
+        print(f"  Computing for I = {I_0} A (point {idx+1})...", end=" ")
         
         t_total = q_b / I_0  # total time [s]
         t_i, T_i = Tb(dTb_dt, I_params(I_0, m_dot_ss), stepsize=0.2)
@@ -101,7 +100,6 @@ def run():
     I_array = np.array(I_runs)
     delta_T_array = np.array(delta_T)
 
-    print("Comparing interpolation methods...")
     # Compare both methods
     comparison = compare_interpolation_accuracy(I_array, delta_T_array)
 
@@ -112,7 +110,6 @@ def run():
     I_max = I_array.max()
     tolerance = 0.01
 
-    print("Finding critical current using bisection...")
     try:
         critical_current_bisection = bisection(
             f=lambda I: current_profile(I_array, delta_T_array, I), 
@@ -127,7 +124,6 @@ def run():
         print(f"Manual bisection result: {critical_current_bisection}")
 
     # Use the bisection result as a good initial guess for the Newton-Raphson method
-    print("Finding critical current using Newton-Raphson...")
     try:
         critical_current_newton = newton(
             lambda I: current_profile(I_array, delta_T_array, I),
@@ -148,7 +144,6 @@ def run():
     rmse = np.sqrt(np.mean(residuals**2))
 
     # Plot
-    print("Generating plot...")
     plt.figure(figsize=(10, 6))
     plt.scatter(I_runs, delta_T, color='blue', s=50, label='Simulation Data', zorder=5)
     I_smooth = np.linspace(I_array.min(), I_array.max(), 100)

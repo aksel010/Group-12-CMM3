@@ -13,7 +13,6 @@ def newton(f, Df, x0, epsilon, max_iter, args=()):
             Dfxn = Df(xn)
             
         if abs(fxn) < epsilon:
-            print('Found solution after', n, 'iterations.')
             return xn
             
         if Dfxn == 0:

@@ -111,28 +111,12 @@ def run():
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, M_DOT
     )
-
-    print("\n" + "="*50)
-    print("      SINGLE-CELL STEADY-STATE FLOW & THERMAL SOLVER")
-    print("="*50)
-    print(f"Cell Heat Generation (Q_gen): {Q_gen} W")
-    print(f"Coolant Inlet Temperature (T_c,in): {T_in:.2f} K")
-    print("-----------------------------------------")
     
     if m_dot_ss > 0:
         print(" Steady-State Operating Point Found")
         print("-----------------------------------------")
         print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.8f} kg/s")
         print(f"Average Coolant Temperature (T_c,avg): {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
-        print(f"Heat Transfer Coefficient (h): {h_ss:.2f} W/(m²·K)")
-        
-        # Calculate the pressure values for comparison
-        P_pump_ss = pump_head_curve(m_dot_ss, T_c_avg_K)
-        P_system_ss = system_head_loss_calc(m_dot_ss, T_c_avg_K)
-        print("\nHydraulic Balance Check:")
-        print(f"Supplied Pressure Drop (dP_pump): {P_pump_ss:.2f} Pa")
-        print(f"Channel Head Loss (dP_system): {P_system_ss:.2f} Pa")
-        print(f"Residual (dP_pump - dP_system): {P_pump_ss - P_system_ss:.2e} Pa")
         
     else:
         print(" Calculation failed. Solver did not converge or found non-physical flow.")
