@@ -91,7 +91,10 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
     #Check that the m_dot value makes sense
     while m_dot <= m_dot_limit and T_c_out_K > T_b_max:
         print("adjusting cooling to match additional heating")
-        m_dot += 0.00001
+        m_dot += 0.0000001
+        if m_dot == m_dot_limit:
+            print ("Mass flowrate limit reached")
+
 
     
     # Calculate h at steady state
@@ -156,4 +159,3 @@ def get_steady_state_values():
 
 if __name__ == "__main__":
     run()
-    
