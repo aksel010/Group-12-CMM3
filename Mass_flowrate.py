@@ -113,8 +113,6 @@ def run():
     )
     
     if m_dot_ss > 0:
-        print(" Steady-State Operating Point Found")
-        print("-----------------------------------------")
         print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.8f} kg/s")
         print(f"Average Coolant Temperature (T_c,avg): {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
         
