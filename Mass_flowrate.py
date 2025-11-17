@@ -105,7 +105,7 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
 
 def run():
     if I_store[-1] == 0:
-        I_store.append(30)
+        I_store.append(I_0)
     Q_gen = I_store[-1]**2 * R_b      
     m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(
         Q_gen, M_DOT
@@ -121,7 +121,7 @@ def run():
     if m_dot_ss > 0:
         print(" Steady-State Operating Point Found")
         print("-----------------------------------------")
-        print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.5f} kg/s")
+        print(f"Mass Flow Rate (m_dot_ss): {m_dot_ss:.8f} kg/s")
         print(f"Average Coolant Temperature (T_c,avg): {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
         print(f"Heat Transfer Coefficient (h): {h_ss:.2f} W/(m²·K)")
         
