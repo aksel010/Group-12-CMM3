@@ -60,7 +60,7 @@ def calculate_h(T: float | np.ndarray) -> float | np.ndarray:
     Re = C_RE / mu
     Pr = (Cp * mu) / lam
     Nu = 0.023 * (Re**0.8) * (Pr**DITTUS_BOELTER_EXPONENT)
-    h = (Nu * lam) / D+
+    h = (Nu * lam) / D
     
     return h
 
