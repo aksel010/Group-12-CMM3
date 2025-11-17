@@ -115,7 +115,7 @@ def run():
             b=I_max, 
             tolerance=tolerance
         )
-        print(f"Bisection result: {critical_current_bisection}")
+        print(f"\nBisection result: {critical_current_bisection}")
     except NameError:
         print("Warning: bisection function not found, using manual implementation")
         critical_current_bisection = find_root_cubic_spline(I_array, delta_T_array)
