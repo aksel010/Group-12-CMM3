@@ -56,8 +56,7 @@ def pressure_balance_couple(m_dot):
     Cp_c_in = Cp_func(T_in)
 
     # Outlet coolant temperature from energy balance
-    T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
-
+    T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero
     # Mean coolant temperature in loop
     T_c_avg_K = (T_in + T_c_out_K) / 2
 
@@ -108,10 +107,8 @@ def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
     T_c_avg_K = (T_in + T_c_out_K) / 2
 
     # ---- Ensure physically meaningful m_dot (no runaway heating) ----
-    while m_dot <= m_dot_limit and T_c_avg_K > (T_in + T_b_max) / 2:
-        m_dot += 1e-7  
-        T_c_out_K = T_in + Q_heat / (m_dot * Cp_c_in)
-        T_c_avg_K = (T_in + T_c_out_K) / 2
+    T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero        m_dot += 1e-7  
+        T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero        T_c_avg_K = (T_in + T_c_out_K) / 2
 
         if m_dot == m_dot_limit:
             print("Mass flowrate limit reached.")
