@@ -64,7 +64,7 @@ def run():
     critical_current = I_store[-1]  # last stored critical current
 
     # Calculate charging performance
-    results = calculate_charging_performance(critical_current, Capacity_cell)
+    results = calculate_charging_performance(critical_current, Capacity_battery)
 
     # Display results
     print("\n--- Charging Performance Results ---")

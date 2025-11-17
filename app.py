@@ -38,6 +38,7 @@ class CMM3App(tk.Tk):
         # Queue for thread communication
         self.result_queue = queue.Queue()
         self.running = False
+        self.cancel_event = threading.Event()
 
     def create_widgets(self):
         # Title
@@ -67,10 +68,18 @@ class CMM3App(tk.Tk):
         # Separator
         ttk.Separator(self.input_frame, orient="horizontal").grid(row=3, column=0, columnspan=2, sticky="ew", pady=10)
         
-        # Run button
-        self.run_btn = ttk.Button(self.input_frame, text="Run Complete Analysis", 
+        # --- Buttons Frame ---
+        buttons_frame = ttk.Frame(self.input_frame)
+        buttons_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=10)
+        buttons_frame.grid_columnconfigure(0, weight=1)
+        buttons_frame.grid_columnconfigure(1, weight=1)
+
+        self.run_btn = ttk.Button(buttons_frame, text="Run Complete Analysis", 
                                   command=self.run_analysis)
-        self.run_btn.grid(row=4, column=0, columnspan=2, pady=15, sticky="ew")
+        self.run_btn.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        
+        self.cancel_btn = ttk.Button(buttons_frame, text="Cancel", command=self.cancel_analysis, state="disabled")
+        self.cancel_btn.grid(row=0, column=1, sticky="ew", padx=(5, 0))
         
         # Progress bar
         self.progress_frame = ttk.Frame(self.input_frame)
@@ -125,6 +134,13 @@ class CMM3App(tk.Tk):
         """Update progress label"""
         self.progress_label.config(text=message)
 
+    def cancel_analysis(self):
+        """Signal the analysis thread to cancel"""
+        if self.running:
+            self.cancel_event.set()
+            self.cancel_btn.config(state="disabled")
+            self.log("\n[INFO] Cancellation signal sent. Waiting for thread to terminate...")
+
     def run_analysis(self):
         """Start analysis in a separate thread"""
         if self.running:
@@ -138,7 +154,9 @@ class CMM3App(tk.Tk):
             return
 
         self.running = True
+        self.cancel_event.clear()
         self.run_btn.config(state="disabled", text="Running...")
+        self.cancel_btn.config(state="normal")
         self.results_text.delete("1.0", "end")
         
         # Show progress bar
@@ -148,17 +166,18 @@ class CMM3App(tk.Tk):
         self.update_progress("Initializing...")
         
         # Start analysis in separate thread
-        analysis_thread = threading.Thread(target=self.perform_analysis, args=(threshold,), daemon=True)
+        analysis_thread = threading.Thread(target=self.perform_analysis, args=(threshold, self.cancel_event), daemon=True)
         analysis_thread.start()
         
         # Check for results periodically
         self.check_results()
 
-    def perform_analysis(self, threshold):
+    def perform_analysis(self, threshold, cancel_event):
         """Main analysis execution function (runs in separate thread)"""
-        result = {"success": False, "data": {}, "error": None}
+        result = {"success": False, "data": {}, "error": None, "status": "running"}
         
         try:
+            if cancel_event.is_set(): return
             # --- Pre-analysis module check ---
             required_modules = {'oc', 'ODE', 'mf', 'rk4e', 'rct', 'hi'}
             for mod_name in required_modules:
@@ -166,11 +185,13 @@ class CMM3App(tk.Tk):
                     raise ImportError(f"Required analysis module '{mod_name}' failed to import. "
                                       "Please check for errors in the module file or its dependencies.")
 
-
+            if cancel_event.is_set(): return
             self.result_queue.put({"type": "log", "message": "\n" + "="*100})
             self.result_queue.put({"type": "log", "message": "[STARTING] Complete analysis run..."})
             self.result_queue.put({"type": "log", "message": "="*100})
             
+            if cancel_event.is_set(): return
+
             # Optimum Current Convergence
             self.result_queue.put({"type": "progress", "message": "Step 1/6: Optimum Current..."})
             self.result_queue.put({"type": "log", "message": "\n[1/6] Running Optimum Current convergence loop..."})
@@ -183,6 +204,8 @@ class CMM3App(tk.Tk):
             iteration = 1
             converged = False
             while not converged:
+                if cancel_event.is_set(): return
+
                 new_result = oc.run()
                 new_current = new_result['critical'][0]
                 I_store.append(new_current)
@@ -193,10 +216,14 @@ class CMM3App(tk.Tk):
                     self.result_queue.put({"type": "log", "message": "      Warning: Max iterations reached"})
                     break
             
+            if cancel_event.is_set(): return
+
             optimum_current = I_store[-1]
             self.result_queue.put({"type": "log", "message": f"      Converged after {len(I_store)} iterations"})
             self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A"})
             self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A\n\n"})
+
+            if cancel_event.is_set(): return
 
             # ODE Solution
             self.result_queue.put({"type": "progress", "message": "Step 2/6: Solving ODE..."})
@@ -207,6 +234,8 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": f"      ODE solved: {len(t_rk)} RK4 points, {len(t_scipy)} SciPy points"})
             self.result_queue.put({"type": "result", "message": f"ODE Solution:\n  RK4: {len(t_rk)} points\n  SciPy: {len(t_scipy)} points\n\n"})
 
+            if cancel_event.is_set(): return
+
             # Mass Flowrate
             self.result_queue.put({"type": "progress", "message": "Step 3/6: Mass flowrate..."})
             self.result_queue.put({"type": "log", "message": "\n[3/6] Computing mass flowrate..."})
@@ -214,11 +243,15 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": f"      Mass flowrate computed"})
             self.result_queue.put({"type": "result", "message": f"Mass Flowrate:\n  Computed successfully\n\n"})
 
+            if cancel_event.is_set(): return
+
             # RK4 Error Analysis
             self.result_queue.put({"type": "progress", "message": "Step 4/6: RK4 error..."})
             self.result_queue.put({"type": "log", "message": "\n[4/6] Performing RK4 error analysis..."})
             rk4e.run()
             self.result_queue.put({"type": "log", "message": "      RK4 error analysis complete"})
+
+            if cancel_event.is_set(): return
 
             # Real Charging Time
             self.result_queue.put({"type": "progress", "message": "Step 5/6: Charging time..."})
@@ -226,17 +259,22 @@ class CMM3App(tk.Tk):
             rct.run()
             self.result_queue.put({"type": "log", "message": "      Real charging time computed"})
 
+            if cancel_event.is_set(): return
+
             # Heptane Properties
             self.result_queue.put({"type": "progress", "message": "Step 6/6: Heptane..."})
             self.result_queue.put({"type": "log", "message": "\n[6/6] Analyzing heptane fluid properties..."})
             hi_data = hi.run()
             self.result_queue.put({"type": "log", "message": "      Heptane properties analyzed"})
 
+            if cancel_event.is_set(): return
+
             # Optimum current data for plotting
             oc_data = oc.run()
 
             # Store results
             result["success"] = True
+            result["status"] = "success"
             result["data"] = {
                 "ode_data": ode_data,
                 "mf_data": mf_data,
@@ -247,12 +285,20 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": "\n[PLOTTING] Generating visualization..."})
 
         except Exception as e:
+            result["status"] = "error"
             result["error"] = str(e)
             self.result_queue.put({"type": "log", "message": f"\n[ERROR] Analysis failed: {str(e)}"})
             self.result_queue.put({"type": "log", "message": f"        {type(e).__name__}: {e}"})
         
-        # Send final result
-        self.result_queue.put({"type": "complete", "result": result})
+        finally:
+            # This block runs whether the try block succeeded, failed, or was cancelled.
+            if cancel_event.is_set():
+                result["status"] = "cancelled"
+                self.result_queue.put({"type": "log", "message": "\n[CANCELLED] Analysis was cancelled by the user."})
+            
+            # Send final result to the main thread
+            self.result_queue.put({"type": "complete", "result": result})
+
 
     def check_results(self):
         """Check queue for results from analysis thread"""
@@ -288,16 +334,22 @@ class CMM3App(tk.Tk):
         self.progress_label.pack_forget()
         
         self.running = False
+        self.cancel_btn.config(state="disabled")
         self.run_btn.config(state="normal", text="Run Complete Analysis")
         
-        if result["error"]:
+        status = result.get("status", "error")
+
+        if status == "error":
             messagebox.showerror("Analysis Error", f"An error occurred:\n{result['error']}")
             self.log("\n" + "="*100)
             self.log("[FAILED] Analysis completed with errors.")
             self.log("="*100 + "\n")
             return
-        
-        if result["success"]:
+        elif status == "cancelled":
+            self.log("\n" + "="*100)
+            self.log("[CANCELLED] Analysis was successfully stopped.")
+            self.log("="*100 + "\n")
+        elif status == "success":
             try:
                 # Extract data
                 ode_data = result["data"]["ode_data"]
