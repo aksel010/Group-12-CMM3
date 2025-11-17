@@ -43,5 +43,7 @@ def main():
 if __name__ == "__main__":
     while abs(I_store[-1]-I_store[-2]) >= 10e-6:
         main()
-        print (I_store)
+    del I_store[0:2]
+    print(f'Model iterated {len(I_store)} times')
+    print (I_store)
     
