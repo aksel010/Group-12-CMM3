@@ -186,3 +186,4 @@ if __name__ == "__main__":
     run()
     time_rk4, temp_rk4 = get_tb(d_tb_dt, params_initial, stepsize = H)
     plt.plot(time_rk4,temp_rk4)
+    plt.show()
