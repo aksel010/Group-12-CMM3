@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 params_initial = (
     m_b,      # Mass of bulk, [kg]
     c_b,      # Specific heat capacity, [J/(kg·K)]
-    current_0,      # Current, [A]
+    8,      # Current, [A]
     dc_ir * 24, # Resistance, [Ω]
     a_s,      # Surface area, [m²]
     t_in,     # Inlet Temperature, [K]
