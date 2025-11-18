@@ -16,7 +16,6 @@ Main Functions:
     - compare_interpolation_methods
     - compare_interpolation_accuracy
 
-All functions include PEP8-compliant docstrings. Explanatory comments added throughout.
 """
 import numpy as np
 from scipy.interpolate import interp1d

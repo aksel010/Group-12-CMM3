@@ -105,6 +105,8 @@ def run():
         t_i, T_i = Tb(dTb_dt, I_params(I, m_dot_ss), stepsize=0.2)
         I_runs.append(I)
         final_temperatures.append(T_i[-1])
+        print(f"I={I}, Final Temp={T_i[-1]}, delta_T={T_i[-1] - (T_b_max - rk4_error_val)}")
+        print("I=", I, "Q_gen=", Q_gen, "mass_flow=", m_dot_ss, ...)
         delta_T.append(T_i[-1] - (T_b_max - rk4_error_val))
     total_time = time.time() - total_start_time
     print(f"\nTotal data generation time: {total_time:.2f} seconds")
@@ -117,6 +119,15 @@ def run():
     tolerance = 0.01
     # Root (critical current) via bisection (or fallback manual method)
     try:
+        print("f(a) =", current_profile(I_array, delta_T_array, I_min))
+        print("f(b) =", current_profile(I_array, delta_T_array, I_max))
+        I_values = np.linspace(I_min, I_max, 100)
+        profile_vals = [current_profile(I_array, delta_T_array, I) for I in I_values]
+        plt.plot(I_values, profile_vals)
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.xlabel('Current (I)')
+        plt.ylabel('current_profile')
+        plt.show()
         critical_current_bisection = bisection(
             f=lambda I: current_profile(I_array, delta_T_array, I),
             a=I_min,
@@ -153,3 +164,5 @@ def run():
         'smooth': (I_smooth, delta_T_smooth),
         'critical': (critical_current_bisection, 0)
     }
+
+run()

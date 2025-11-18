@@ -1,5 +1,8 @@
 import math
-from heptane_itpl import Cp_func, calculate_h
+import pandas as pd
+import numpy as np
+
+from heptane_itpl import cp_func, calculate_h
 from Mass_flowrate import get_steady_state_values
 from config import *
 import numpy as np
@@ -9,117 +12,135 @@ import matplotlib.pyplot as plt
 # Parameters for initial conditions
 params_initial = (
     m_b,      # Mass of bulk, [kg]
-    C_b,      # Specific heat capacity, [J/(kg·K)]
-    I_0,      # Current, [A]
-    DC_IR * 24, # Resistance, [Ω]
-    A_s,      # Surface area, [m²]
-    T_in,     # Inlet Temperature, [K]
+    c_b,      # Specific heat capacity, [J/(kg·K)]
+    current_0,      # Current, [A]
+    dc_ir * 24, # Resistance, [Ω]
+    a_s,      # Surface area, [m²]
+    t_in,     # Inlet Temperature, [K]
     get_steady_state_values()[0] # Mass flow rate, [kg/s]
 )
 
-def dTb_dt(Tb, t, params):
+def d_tb_dt(tb, t, params):
     """
     Calculate the rate of change of bulk temperature Tb.
 
     Args:
-        Tb (float): Bulk temperature at time t.
+        tb (float): Bulk temperature at time t.
         t (float): Time.
         params (tuple): Physical parameters of the system.
 
     Returns:
-        float: dTb/dt, rate of temperature change.
+        float: d_tb/dt, rate of temperature change.
     """
     # Unpack parameters
-    m, cp_b, I, R, A_s, T_c_in, m_dot = params
+    m, cp_b, current, r, a_s, t_c_in, m_dot = params
 
     # Calculate h based on current bulk temperature
-    T_c_avg = (Tb + T_c_in) / 2
-    h = calculate_h(T_c_avg)
-    cp_c = Cp_func(T_c_avg)
+    t_c_avg = (tb + t_c_in) / 2
+    h = calculate_h(t_c_avg)
+    cp_c = cp_func(t_c_avg)
 
     # Electrical heating term
-    heating = I**2 * R
+    heating = current**2 * r
 
     # Cooling term denominator
-    cooling_denom = 1 + (h * A_s) / (2 * m * cp_c)
+    cooling_denom = 1 + (h * a_s) / (2 * m * cp_c)
 
     # Cooling term
-    cooling = (h * A_s * (Tb - T_c_in)) / cooling_denom
+    cooling = (h * a_s * (tb - t_c_in)) / cooling_denom
 
     # Rate of change of temperature
-    dTb_dt = (heating - cooling) / (m * cp_b)
+    d_tb_dt = (heating - cooling) / (m * cp_b)
 
-    return dTb_dt
+    return d_tb_dt
 
-def Tb(dTdt, params, stepsize):
+def get_tb(d_tb_dt, params, stepsize):
     """
-    Integrates bulk temperature evolution using RK4 scheme.
+    Integrates battery bulk temperature evolution using RK4 scheme.
 
     Args:
-        dTdt (callable): Derivative function.
-        params (tuple): Physical system parameters.
-        stepsize (float): Time step size for integration.
+        d_tb_dt (callable): Derivative function for battery temperature.
+            Signature: d_tb_dt(temp, time, params) -> float
+        params (tuple): Physical system parameters 
+            (current, mass_flow, heat_capacity, etc.).
+        stepsize (float): Time step size for integration (seconds).
 
     Returns:
-        tuple: Arrays of time points and temperatures.
+        tuple: (time_array, temperature_array)
+            - time_array (np.ndarray): Time points from 0 to t_final.
+            - temperature_array (np.ndarray): Battery temperatures at each time.
     """
     # Initial conditions
-    t0 = 0
-    T0 = T_in
-    t_final = q_b / params[2]
-    n_step = math.ceil(t_final / stepsize)
+    initial_time = 0.0
+    initial_temp = t_in  # Inlet temperature from config
+    final_time = q_b / params[2]  # Total charge / current
+    num_steps = math.ceil(final_time / stepsize)
 
-    T_rk = np.zeros(n_step + 1)
-    t_rk = np.zeros(n_step + 1)
-    T_rk[0] = T0
-    t_rk[0] = t0
-    t_rk[1:] = np.arange(1, n_step + 1) * stepsize
+    # Preallocate arrays for RK4 integration
+    temp_battery = np.zeros(num_steps + 1)
+    time_points = np.zeros(num_steps + 1)
+    temp_battery[0] = initial_temp
+    time_points[0] = initial_time
+    time_points[1:] = np.arange(1, num_steps + 1) * stepsize
 
-    for i in range(n_step):
-        t_i = t_rk[i]
-        T_i = T_rk[i]
+    # RK4 integration loop
+    for i in range(num_steps):
+        t_current = time_points[i]
+        temp_current = temp_battery[i]
 
-        k1 = dTdt(T_i, t_i, params)
-        k2 = dTdt(T_i + 0.5 * stepsize * k1, t_i + 0.5 * stepsize, params)
-        k3 = dTdt(T_i + 0.5 * stepsize * k2, t_i + 0.5 * stepsize, params)
-        k4 = dTdt(T_i + stepsize * k3, t_i + stepsize, params)
+        # Runge-Kutta 4th order method
+        k1 = d_tb_dt(temp_current, t_current, params)
+        k2 = d_tb_dt(temp_current + 0.5 * stepsize * k1, 
+                     t_current + 0.5 * stepsize, params)
+        k3 = d_tb_dt(temp_current + 0.5 * stepsize * k2, 
+                     t_current + 0.5 * stepsize, params)
+        k4 = d_tb_dt(temp_current + stepsize * k3, 
+                     t_current + stepsize, params)
+        
         slope = (k1 + 2 * k2 + 2 * k3 + k4) / 6
-        T_rk[i + 1] = T_i + stepsize * slope
+        temp_battery[i + 1] = temp_current + stepsize * slope
 
-    return t_rk, T_rk
+    return time_points, temp_battery
 
 # ------------------------------------------------------
 
-def Tb_scipy(dTdt, params):
+def get_tb_scipy(d_tb_dt, params):
     """
-    Integrate temperature using SciPy's solve_ivp method.
+    Integrate battery bulk temperature evolution using SciPy's solve_ivp method.
 
     Args:
-        dTdt (callable): Derivative function.
-        params (tuple): System parameters.
+        d_tb_dt (callable): Derivative function for battery temperature.
+            Signature: d_tb_dt(temp, time, params) -> float
+        params (tuple): Physical system parameters 
+            (current, mass_flow, heat_capacity, etc.).
 
     Returns:
-        tuple: Arrays of time points and temperatures.
+        tuple: (time_array, temperature_array)
+            - time_array (np.ndarray): Time points from 0 to final_time.
+            - temperature_array (np.ndarray): Battery temperatures at each time.
     """
-    t0 = 0
-    T0 = T_in
-    t_final = q_b / params[2]
+    # Initial conditions
+    initial_time = 0.0
+    initial_temp = t_in  # Inlet temperature from config
+    final_time = q_b / params[2]  # Total charge / current
+    
+    # Solve ODE using LSODA adaptive method
     sol = solve_ivp(
-        fun=lambda t, T, *_: dTdt(T, t, params),
-        t_span=[t0, t_final],
-        y0=[T0],
+        fun=lambda t, T, *_: d_tb_dt(T, t, params),
+        t_span=[initial_time, final_time],
+        y0=[initial_temp],
         method='LSODA',
         dense_output=True,
         rtol=1e-6,
         atol=1e-8
     )
 
-    t_sol = np.linspace(t0, t_final, 100)
-    T_sol = sol.sol(t_sol)[0]
-    return t_sol, T_sol
-
-import pandas as pd
-import numpy as np
+    # Extract solution at uniform time points
+    num_output_points = 100
+    time_points = np.linspace(initial_time, final_time, num_output_points)
+    temp_battery = sol.sol(time_points)[0]
+    
+    return time_points, temp_battery
 
 def export_scipy_data(filename='RK4_solution.csv'):
     """
@@ -128,7 +149,7 @@ def export_scipy_data(filename='RK4_solution.csv'):
     Args:
         filename (str): Output CSV file name.
     """
-    t_sol, T_sol = Tb_scipy(dTb_dt, params_initial)
+    t_sol, T_sol = get_tb_scipy(d_tb_dt, params_initial)
     data = {
         'Time (s)': t_sol,
         'Temperature (K)': T_sol
@@ -144,8 +165,8 @@ def run():
     Returns:
         dict: 'rk4' and 'scipy' arrays with their respective time and temperature arrays.
     """
-    t_rk, T_rk = Tb(dTb_dt, params_initial, stepsize=H)
-    t_scipy, T_scipy = Tb_scipy(dTb_dt, params_initial)
+    t_rk, T_rk = Tb(d_tb_dt, params_initial, stepsize=H)
+    t_scipy, T_scipy = Tb_scipy(d_tb_dt, params_initial)
     return {
         'rk4': (t_rk, T_rk),
         'scipy': (t_scipy, T_scipy)
