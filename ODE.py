@@ -12,15 +12,12 @@ import matplotlib.pyplot as plt
 # Battery parameters (typical 18650 Li-ion battery)
 m_b = 0.045           # kg (45g typical 18650 mass)
 c_b = 900            # J/(kg·K) (typical battery specific heat)
-q_b = 3600 * 2.5     # C (2.5 Ah battery = 9000 Coulombs)
 
 # Thermal and electrical parameters
 dc_ir = 0.05         # Ω (internal resistance)
 a_s = 0.0025         # m² (surface area ~18mm diameter x 65mm height)
 t_in = 293.15        # K (20°C inlet temperature)
 
-# Integration parameter
-H = 1.0              # seconds (time step)
 
 # Complete params_initial tuple
 params_initial = (
@@ -30,7 +27,7 @@ params_initial = (
     dc_ir,    # Resistance, [Ω] = 0.05 (removed *24 multiplier)
     a_s,      # Surface area, [m²] = 0.0025
     t_in,     # Inlet Temperature, [K] = 293.15
-    0.01      # Mass flow rate, [kg/s] = 0.01 (10g/s, conservative)
+    get_steady_state_values()[0]      # Mass flow rate, [kg/s] = 0.01 (10g/s, conservative)
 )
 
 def d_tb_dt(tb, t, params):
