@@ -137,7 +137,7 @@ def run():
     Returns:
         dict: {'mass_flow': m_range, 'residuals': residuals}
     """
-    if len(current_store) == 0:
+    if current_store[-1] == 0:
         current_store.append(current_0)
     generated_heat = current_store[-1] ** 2 * r_b
     mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
