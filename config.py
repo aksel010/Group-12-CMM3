@@ -7,7 +7,7 @@ import numpy as np
 g = 9.81  # Gravitational acceleration [m/s^2]
 
 # ========== NiMH Battery Properties ========== #
-n_cell = 240  # total number of cells
+n_cell = 24  # total number of cells
 v_cell = 1.2  # [V] per cell
 capacity_cell = 6  # [Ah] per cell
 energy_cell = 7.2  # [Wh] per cell

@@ -17,7 +17,7 @@ params_initial = (
     dc_ir * 24, # Resistance, [Ω]
     a_s,      # Surface area, [m²]
     t_in,     # Inlet Temperature, [K]
-    0.1 # Mass flow rate, [kg/s]
+    1 # Mass flow rate, [kg/s]
 )
 
 def d_tb_dt(tb, t, params):
@@ -186,4 +186,5 @@ if __name__ == "__main__":
     run()
     time_rk4, temp_rk4 = get_tb(d_tb_dt, params_initial, stepsize = H)
     plt.plot(time_rk4,temp_rk4)
+    print(params_initial)
     plt.show()
