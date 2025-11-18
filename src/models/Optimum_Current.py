@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-from src.models.ODE import Tb, dTb_dt
+from src.models.ODE import get_tb, d_tb_dt
 from src.config import *
-from src.models.Mass_flowrate import get_steady_state_values
+from src.models.Mass_flowrate import get_steady_state_values, calculate_steady_state_mass_flow
 from src.models.RK4_Error import get_rk4_error_val
 from src.utils.interpolater import *
 from src.utils.root_finders import bisection, newton
@@ -132,7 +132,7 @@ def run():
     delta_temp = []
 
     # Run from 6 A to 13 A (adjust range as needed for zero crossing)
-    for current in np.arange(6, 500, 5):
+    for current in np.arange(6, 18, 1):
         iter_start = time.time()
         
         # Total discharge time at this current
@@ -159,16 +159,6 @@ def run():
     # Convert lists to arrays
     current_array = np.array(current_runs)
     delta_temp_array = np.array(delta_temp)
-
-    # Debug: Show data range and sign information
-    print(f"\n--- Debug Info ---")
-    print(f"Current range: {current_array.min():.2f} A to {current_array.max():.2f} A")
-    print(f"ΔT range: {delta_temp_array.min():.4f} K to {delta_temp_array.max():.4f} K")
-    print(f"ΔT at I_min ({current_array.min():.2f}A): {delta_temp_array[0]:.4f} K")
-    print(f"ΔT at I_max ({current_array.max():.2f}A): {delta_temp_array[-1]:.4f} K")
-    print(f"Sign check: f(a)={delta_temp_array[0]:.6f}, f(b)={delta_temp_array[-1]:.6f}, product={delta_temp_array[0]*delta_temp_array[-1]:.6e}")
-    print(f"Zero crossing exists: {delta_temp_array[0] * delta_temp_array[-1] < 0}")
-    print(f"-------------------\n")
     
     # Validate interpolation
     comparison = compare_interpolation_accuracy(current_array, delta_temp_array)

@@ -39,7 +39,7 @@ def run():
         print("Error: Optimum current not yet calculated!")
         return
     critical_current = current_store[-1]
-    results = calculate_charging_performance(critical_current, Capacity_battery)
+    results = calculate_charging_performance(critical_current, capacity_battery)
     print("\n--- Charging Performance Results ---")
     print(f"Optimum C-rate: {results['critical_C_rate']} C")
     print(f"Optimum charge time: {results['fastest_charge_min']} min")

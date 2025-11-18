@@ -13,7 +13,7 @@ from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
 from src.models.cooling_analysis import get_head_loss
 from src.config import *
-from src.utils.heptane_itpl import calculate_h, Cp_func, rho_func, mu_func
+from src.utils.heptane_itpl import calculate_h, cp_func, rho_func, mu_func
 from src.utils.root_finders import newton
 
 # Global heat load, tied to current calculation context
@@ -108,8 +108,6 @@ def calculate_steady_state_mass_flow(generated_heat, guess_mass_flow):
     """
     global heat_load
     heat_load = generated_heat
-    if generated_heat >= heat_limit:
-        print("Warning: Heat generation exceeds geometric cooling limits.")
     mass_flow = newton(pressure_balance_couple, pressure_root_deriv, guess_mass_flow, epsilon=1e-6, max_iter=100, args=()) / (2 * n)
     if mass_flow is None:
         print("Warning: Newton-Raphson failed. Returning fallback value.")

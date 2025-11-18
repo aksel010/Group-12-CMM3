@@ -4,6 +4,9 @@ Plot measured (experimental) and model-predicted relationships between C-rate an
 Loads real data, sorts and plots, then overlays the analytic model for direct visual comparison.
 PEP8-compliant docstring, comments, clear computation and plot separation.
 """
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np

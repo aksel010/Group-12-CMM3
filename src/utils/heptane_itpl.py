@@ -4,6 +4,9 @@ Heptane thermophysical property interpolation utilities (from NIST).
 Parses tabular NIST data and provides SI-physical property interpolators for use in broader battery/cooling calculations.
 All functions refactored for PEP8 docstring and consistent block comments.
 """
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +17,7 @@ from src.config import *
 # --------------------------------------------------------------------------- #
 # Load NIST thermophysical property data
 # --------------------------------------------------------------------------- #
-NIST_data_FILE = Path(__file__).parent / "n heptane 2.txt"
+NIST_data_FILE = Path(__file__).parent.parent.parent / "data" / "raw" / "n heptane 2.txt"
 
 def import_nist_txt(filepath: str | Path) -> pd.DataFrame:
     """

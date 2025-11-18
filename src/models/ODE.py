@@ -1,5 +1,5 @@
 import math
-from src.utils.heptane_itpl import Cp_func,calculate_h
+from src.utils.heptane_itpl import cp_func,calculate_h
 from src.models.Mass_flowrate import get_steady_state_values
 from src.config import *
 import numpy as np
