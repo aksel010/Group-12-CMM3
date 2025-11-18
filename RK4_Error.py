@@ -4,7 +4,7 @@ PEP8-compliant docstrings/descriptions for all functions and script blocks.
 """
 import numpy as np
 from config import *
-from ODE import Tb, dTb_dt, params_initial
+from ODE import get_tb, d_tb_dt, params_initial
 
 def rk4_error():
     """
@@ -14,8 +14,8 @@ def rk4_error():
         float: Max RK4 truncation error [K].
     """
     rk4_step = H
-    T_fullstep, t_fullstep = Tb(dTb_dt, params_initial, stepsize=rk4_step)
-    T_halfstep, t_halfstep = Tb(dTb_dt, params_initial, stepsize=rk4_step / 2)
+    T_fullstep, t_fullstep = get_tb(d_tb_dt, params_initial, stepsize=rk4_step)
+    T_halfstep, t_halfstep = get_tb(d_tb_dt, params_initial, stepsize=rk4_step / 2)
     p = 4.0  # RK4 method order
     T_half_reshaped = T_halfstep[::2]
     T_full_reshaped = T_fullstep
