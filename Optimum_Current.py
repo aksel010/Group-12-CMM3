@@ -140,26 +140,44 @@ def run():
     final_temperatures = []
     delta_temp = []
 
+    # Run from 6 A to 13 A (adjust range as needed for zero crossing)
     for current in np.arange(6, 13, 1):
-        # Discharge simulation for each current
+        iter_start = time.time()
+        
+        # Total discharge time at this current
         t_total = q_b / current
+        
+        # Solve temperature ODE using RK4 solver
         time_points, temp_battery = get_tb(d_tb_dt, current_params(current, mass_flow_ss), stepsize=0.2)
+        
         current_runs.append(current)
         final_temperatures.append(temp_battery[-1])
         
+        # ΔT relative to the safe maximum
         target_temp = t_b_max - rk4_error_val
         temp_deviation = temp_battery[-1] - target_temp
         delta_temp.append(temp_deviation)
-    
-    # Log results
-    print(f"current={current}, Final Temp={temp_battery[-1]}, delta_T={temp_deviation}")
-    print(f"current={current}, Q_gen={Q_gen}, mass_flow={mass_flow_ss}")
         
+        iter_time = time.time() - iter_start
+        # Optional: print iteration time if needed
+        # print(f"  Iteration {current}A completed in {iter_time:.3f}s")
+
     total_time = time.time() - total_start_time
     print(f"\nTotal data generation time: {total_time:.2f} seconds")
-    
+
+    # Convert lists to arrays
     current_array = np.array(current_runs)
     delta_temp_array = np.array(delta_temp)
+
+    # Debug: Show data range and sign information
+    print(f"\n--- Debug Info ---")
+    print(f"Current range: {current_array.min():.2f} A to {current_array.max():.2f} A")
+    print(f"ΔT range: {delta_temp_array.min():.4f} K to {delta_temp_array.max():.4f} K")
+    print(f"ΔT at I_min ({current_array.min():.2f}A): {delta_temp_array[0]:.4f} K")
+    print(f"ΔT at I_max ({current_array.max():.2f}A): {delta_temp_array[-1]:.4f} K")
+    print(f"Sign check: f(a)={delta_temp_array[0]:.6f}, f(b)={delta_temp_array[-1]:.6f}, product={delta_temp_array[0]*delta_temp_array[-1]:.6e}")
+    print(f"Zero crossing exists: {delta_temp_array[0] * delta_temp_array[-1] < 0}")
+    print(f"-------------------\n")
     
     # Validate interpolation
     comparison = compare_interpolation_accuracy(current_array, delta_temp_array)
