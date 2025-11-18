@@ -34,11 +34,10 @@ def run():
     Retrieve the latest critical current, compute and print practical and theoretical fast charge results.
     """
     print("Computing...")
-    from config import I_store
-    if len(I_store) == 0:
+    if len(current_store) == 1
         print("Error: Optimum current not yet calculated!")
         return
-    critical_current = I_store[-1]
+    critical_current = current_store[-1]
     results = calculate_charging_performance(critical_current, Capacity_battery)
     print("\n--- Charging Performance Results ---")
     print(f"Optimum C-rate: {results['critical_C_rate']} C")
