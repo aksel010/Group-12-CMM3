@@ -115,8 +115,14 @@ def calculate_steady_state_mass_flow(generated_heat, mass_flow_initial):
         print("Warning: Newton-Raphson failed. Returning fallback value.")
         mass_flow = 1e-6
     cp_c_in = cp_func(t_in)
-    t_c_out_k = t_in + heat_load / (max(mass_flow, 1e-10) * cp_c_in)
+    t_c_out_k = t_in + heat_load / (mass_flow * cp_c_in)
     t_c_avg_k = (t_in + t_c_out_k) / 2
+    
+    while mass_flow < mass_flow_limit and t_c_avg_k > (t_b_max+t_in)/2:
+        mass_flow += 10e8
+        t_c_out_k = t_in + heat_load / (mass_flow * cp_c_in)
+        t_c_avg_k = (t_in + t_c_out_k) / 2
+        
     if mass_flow == mass_flow_limit:
         print("Mass flowrate limit reached.")
     h_ss = calculate_h(t_c_avg_k)
@@ -135,6 +141,7 @@ def run():
         current_store.append(current_0)
     generated_heat = current_store[-1] ** 2 * r_b
     mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
+    print(current_store[-1])
     if mass_flow_ss > 0:
         print(f"Mass Flow Rate: {mass_flow_ss:.8f} kg/s")
         print(f"Average Coolant Temperature: {t_c_avg_k:.2f} K ({t_c_avg_k - 273.15:.2f} °C)")
