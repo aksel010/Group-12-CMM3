@@ -17,7 +17,7 @@ params_initial = (
     dc_ir * 24, # Resistance, [Ω]
     a_s,      # Surface area, [m²]
     t_in,     # Inlet Temperature, [K]
-    get_steady_state_values()[0] # Mass flow rate, [kg/s]
+    0.1 # Mass flow rate, [kg/s]
 )
 
 def d_tb_dt(tb, t, params):
@@ -44,7 +44,7 @@ def d_tb_dt(tb, t, params):
     heating = current**2 * r
 
     # Cooling term denominator
-    cooling_denom = 1 + (h * a_s) / (2 * m * cp_c)
+    cooling_denom = 1 + (h * a_s) / (2 * m_dot * cp_c)
 
     # Cooling term
     cooling = (h * a_s * (tb - t_c_in)) / cooling_denom
@@ -184,4 +184,5 @@ def run():
 
 if __name__ == "__main__":
     run()
-# ------------------------------------------------------
+    time_rk4, temp_rk4 = get_tb(d_tb_dt, params_initial, stepsize = H)
+    plt.plot(time_rk4,temp_rk4)
