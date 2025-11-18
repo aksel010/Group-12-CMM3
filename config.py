@@ -42,10 +42,10 @@ a_s = l_b * (2 * w_branch + 2 * h_branch)  # [m^2] branch wetted area
 d_h = 2 * w_branch * h_branch / (w_branch + h_branch)  # [m] hydr. diameter
 
 # ========== n-Heptane / Fluid / Pump Properties ========== #
-M_DOT = 0.0001  # [kg/s] nominal mass flowrate
+mass_flow_initial = 0.0001  # [kg/s] nominal mass flowrate
 N_HEPTANE_MOLAR_MASS = 0.100205  # [kg/mol]
 DITTUS_BOELTER_EXPONENT = 0.4
-C_RE = 4 * M_DOT / (np.pi * d)  # Reynolds const for flow
+C_RE = 4 * mass_flow_initial / (np.pi * d)  # Reynolds const for flow
 FLOWRATE_MIN = 5.0 / 60000  # [m^3/s] min. pump flow
 
 # ========== RK4 Solver Parameters ========== #
