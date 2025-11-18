@@ -17,7 +17,7 @@ from interpolater import *
 from root_finders import bisection, newton
 
 
-def current_params(current, mass_flow_ss):
+def current_params(current):
     """
     Build ODE parameter tuple for given current and coolant flow.
 
@@ -148,7 +148,10 @@ def run():
         t_total = q_b / current
         
         # Solve temperature ODE using RK4 solver
-        time_points, temp_battery = get_tb(d_tb_dt, current_params(current, mass_flow_ss), stepsize=0.2)
+        time_points, temp_battery = get_tb(d_tb_dt, current_params(current), stepsize=30)
+
+        plt.plot(time_points, temp_battery)
+        plt.show()
         
         current_runs.append(current)
         final_temperatures.append(temp_battery[-1])
