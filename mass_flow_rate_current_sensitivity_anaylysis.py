@@ -26,7 +26,7 @@ for current in current_values:
     # Electrical heat generation (W)
     generated_heat = current ** 2 * r_b
     # Compute steady-state mass flow rate
-    mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, M_DOT)
+    mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
     # Store mass-flow result
     mass_flow_values.append(mass_flow_ss)
 
