@@ -34,7 +34,7 @@ def run():
     Retrieve the latest critical current, compute and print practical and theoretical fast charge results.
     """
     print("Computing...")
-    if len(current_store) == 1
+    if len(current_store) == 1:
         print("Error: Optimum current not yet calculated!")
         return
     critical_current = current_store[-1]

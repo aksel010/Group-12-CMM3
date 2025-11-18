@@ -28,7 +28,11 @@ Group-12-CMM3-1/
 │
 ├── data/                          # Thermophysical data
 │   ├── raw/                       # Original NIST data
+│   │   ├── n_heptane_2.txt        
+│   │   ├── real_data_c_rate.csv   
 │   └── processed/                 # Fitted polynomial coefficients
+│       ├── temp_time_charging_liu2                 
+│       └── time_of_simulation.csv           
 │
 ├── src/                           # Source code
 │   ├── models/                    # Core physics models
