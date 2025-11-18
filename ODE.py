@@ -142,17 +142,19 @@ def get_tb_scipy(d_tb_dt, params):
     
     return time_points, temp_battery
 
-def export_scipy_data(filename='RK4_solution.csv'):
+def export_scipy_data(d_tb_dt, params, filename='scipy_solution.csv'):
     """
-    Export SciPy solution data to CSV.
+    Export SciPy solution data to CSV file.
 
     Args:
-        filename (str): Output CSV file name.
+        d_tb_dt (callable): Derivative function for battery temperature.
+        params (tuple): Physical system parameters.
+        filename (str): Output CSV file name. Default: 'scipy_solution.csv'
     """
-    t_sol, T_sol = get_tb_scipy(d_tb_dt, params_initial)
+    time_points, temp_battery = get_tb_scipy(d_tb_dt, params)
     data = {
-        'Time (s)': t_sol,
-        'Temperature (K)': T_sol
+        'Time (s)': time_points,
+        'Temperature (K)': temp_battery
     }
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
@@ -160,19 +162,26 @@ def export_scipy_data(filename='RK4_solution.csv'):
 
 def run():
     """
-    Execute both RK4 and SciPy integrators, return their results.
+    Execute both RK4 and SciPy integrators and return their results for comparison.
+
+    Args:
+        d_tb_dt (callable): Derivative function for battery temperature.
+        params (tuple): Physical system parameters.
+        stepsize (float): Time step size for RK4 integration (seconds).
 
     Returns:
-        dict: 'rk4' and 'scipy' arrays with their respective time and temperature arrays.
+        dict: Dictionary with 'rk4' and 'scipy' keys, each containing:
+            - time_array (np.ndarray): Time points
+            - temp_array (np.ndarray): Battery temperatures
     """
-    t_rk, T_rk = Tb(d_tb_dt, params_initial, stepsize=H)
-    t_scipy, T_scipy = Tb_scipy(d_tb_dt, params_initial)
+    time_rk4, temp_rk4 = get_tb(d_tb_dt, params_initial, stepsize = H)
+    time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, params_initial)
+    
     return {
-        'rk4': (t_rk, T_rk),
-        'scipy': (t_scipy, T_scipy)
+        'rk4': (time_rk4, temp_rk4),
+        'scipy': (time_scipy, temp_scipy)
     }
 
 if __name__ == "__main__":
-    # Ensure H is defined in your config.py or elsewhere for stepsize
     run()
 # ------------------------------------------------------
