@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from config import *
-from ODE import Tb
-from heptane_itpl import Cp_func, mu_func, rho_func, lambda_func
-from Mass_flowrate import get_steady_state_values
+from src.models.ODE import Tb
+from src.utils.heptane_itpl import Cp_func, mu_func, rho_func, lambda_func
+from src.models.Mass_flowrate import get_steady_state_values
 
 # -------------------------------------------------------------------
 # Fetch steady-state parameters from solver

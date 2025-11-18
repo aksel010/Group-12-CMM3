@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 
 # Import configuration and all modules' run functions
 from config import *
-import ODE
-import RK4_Error as rk4e
-import Mass_flowrate as mf
-import Optimum_Current as oc
-import Real_Charging_Time as rct
-import cooling_analysis as ca
-import heptane_itpl as hi
+import src.models.ODE as ODE
+import src.models.RK4_Error as rk4e
+import src.models.Mass_flowrate as mf
+import src.models.Optimum_Current as oc
+import scripts.Real_Charging_Time as rct
+import src.models.cooling_analysis as ca
+import src.utils.heptane_itpl as hi
 
 def compute_optimum_current(threshold=I_Threshold):
     I_store.clear()  # Start fresh for each run

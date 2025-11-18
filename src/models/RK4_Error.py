@@ -1,6 +1,6 @@
 import numpy as np
 from config import *
-from ODE import Tb, dTb_dt, params_initial
+from src.models.ODE import Tb, dTb_dt, params_initial
 
 
 # -------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from heptane_itpl import rho_func, mu_func
+from src.utils.heptane_itpl import rho_func, mu_func
 from config import *
 
 

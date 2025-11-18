@@ -1,6 +1,6 @@
 import math
-from heptane_itpl import Cp_func,calculate_h
-from Mass_flowrate import get_steady_state_values
+from src.utils.heptane_itpl import Cp_func,calculate_h
+from src.models.Mass_flowrate import get_steady_state_values
 from config import *
 import numpy as np
 from scipy.integrate import solve_ivp

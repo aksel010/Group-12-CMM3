@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 from config import *
-from heptane_itpl import lambda_func, Cp_func, mu_func, rho_func
-from ODE import dTb_dt
+from src.utils.heptane_itpl import lambda_func, Cp_func, mu_func, rho_func
+from src.models.ODE import dTb_dt
 
 # -------------------------------------------------------------------
 # Function: calculate_h

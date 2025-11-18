@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
-from cooling_analysis import get_head_loss
+from src.models.cooling_analysis import get_head_loss
 from config import *
-from heptane_itpl import calculate_h, Cp_func, rho_func, mu_func
-from root_finders import newton
+from src.utils.heptane_itpl import calculate_h, Cp_func, rho_func, mu_func
+from src.utils.root_finders import newton
 
 # Global, updated inside calculate_steady_state_mass_flow()
 Q_heat = 0.0  

@@ -2,12 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-from ODE import Tb, dTb_dt
+from src.models.ODE import Tb, dTb_dt
 from config import *
-from Mass_flowrate import get_steady_state_values
-from RK4_Error import get_rk4_error_val
-from interpolater import *
-from root_finders import bisection, newton
+from src.models.Mass_flowrate import get_steady_state_values
+from src.models.RK4_Error import get_rk4_error_val
+from src.utils.interpolater import *
+from src.utils.root_finders import bisection, newton
 
 
 # -------------------------------------------------------------------------

@@ -12,13 +12,13 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 try:
-    import Optimum_Current as oc
-    import Mass_flowrate as mf
-    import ODE
-    import RK4_Error as rk4e
-    import Real_Charging_Time as rct
-    import cooling_analysis as ca
-    import heptane_itpl as hi
+    import src.models.Optimum_Current as oc
+    import src.models.Mass_flowrate as mf
+    import src.models.ODE as ODE
+    import src.models.RK4_Error as rk4e
+    import scripts.Real_Charging_Time as rct
+    import src.models.cooling_analysis as ca
+    import src.utils.heptane_itpl as hi
     from config import I_Threshold
 except ImportError as e:
     print(f"Warning: Could not import module: {e}")
