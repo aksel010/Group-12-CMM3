@@ -1,3 +1,13 @@
+"""
+Thermohydraulic coolant loop and mass flow rate calculation utilities.
+
+Key functionality:
+- Compute mass flow rate, temperature, heat transfer.
+- Solve coupled hydraulic/thermal balance equations for steady state.
+- Provide system diagnostics (pressure/flow residuals).
+
+Each function now includes a PEP8/PEP257-compliant docstring and clarifying block comments.
+"""
 import numpy as np
 from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
@@ -6,159 +16,151 @@ from config import *
 from src.utils.heptane_itpl import calculate_h, Cp_func, rho_func, mu_func
 from src.utils.root_finders import newton
 
-# Global, updated inside calculate_steady_state_mass_flow()
-Q_heat = 0.0  
+# Global heat load, tied to current calculation context
+heat_load = 0.0
 
 # -------------------------------------------------------------------
 # HYDRAULIC + THERMAL SAFETY LIMIT CALCULATIONS
 # -------------------------------------------------------------------
-
-# Max allowable mass flow based on viscosity and geometry
-m_dot_limit = 2000 * mu_func(T_b_max) * S_b / D
-
-# Max allowable heat load (safety threshold)
-Q_limit = m_dot_limit * Cp_func(T_b_max) * (T_b_max - T_in)
+# Maximum allowed mass flow (viscous/geometry limit)
+mass_flow_limit = 2000 * mu_func(t_b_max) * s_b / d
+# Maximum allowable heat load (safety limit)
+heat_limit = mass_flow_limit * cp_func(t_b_max) * (t_b_max - t_in)
 
 # -------------------------------------------------------------------
 # PUMP + SYSTEM HEAD FUNCTIONS
 # -------------------------------------------------------------------
-
-def pump_head_curve(m_dot, T_c_avg_K):
+def pump_head_curve(mass_flow, t_c_avg_k):
     """
-    Pump head curve model (placeholder).
-    Returns pump pressure rise (Pa) as a function of m_dot.
-    """
-    H_max = 80.0                           # maximum pump head (m)
-    P_max = H_max * rho_func(T_c_avg_K) * 9.81  # convert head → pressure
-    V_dot_max = 9.0 / 60000                # 9 L/min → m³/s
-    K = H_max / (V_dot_max ** 2)           # proportionality constant
-    return P_max - K * m_dot**2            # quadratic drop-off with flow rate
+    Models pump pressure rise as a function of flow.
 
+    Args:
+        mass_flow (float): Mass flow rate [kg/s].
+        t_c_avg_k (float): Average coolant temperature [K].
 
-def system_head_loss_calc(m_dot, T_c_avg_K):
+    Returns:
+        float: Net pump pressure [Pa] at given flow.
     """
-    Computes system head loss (Pa), based on hydraulic model.
-    """
-    V_dot = m_dot / rho_func(T_c_avg_K)     # convert mass flow → volumetric flow
-    return get_head_loss(V_dot) * rho_func(T_c_avg_K) * g
+    h_max = 80.0
+    p_max = h_max * rho_func(t_c_avg_k) * 9.81
+    v_dot_max = 9.0 / 60000
+    k = h_max / (v_dot_max ** 2)
+    return p_max - k * mass_flow ** 2
 
+def system_head_loss_calc(mass_flow, t_c_avg_k):
+    """
+    Hydraulic system head loss, considering fluid and channel properties.
+
+    Args:
+        mass_flow (float): Mass flow rate [kg/s].
+        T_c_avg_K (float): Average coolant temperature [K].
+
+    Returns:
+        float: System head loss [Pa].
+    """
+    v_dot = mass_flow / rho_func(t_c_avg_k)
+    return get_head_loss(v_dot) * rho_func(t_c_avg_k) * g
 
 # -------------------------------------------------------------------
 # COUPLED HYDRAULIC–THERMAL ROOT FUNCTION
 # -------------------------------------------------------------------
-
-def pressure_balance_couple(m_dot):
+def pressure_balance_couple(mass_flow):
     """
-    Coupled equation: pump pressure - system loss = 0.
-    Root of this function => hydraulic equilibrium.
+    Combined pump/system pressure balance at a given mass flow rate.
+    Returns positive when pump exceeds loss, negative if not.
+
+    Args:
+        mass_flow (float): Flow assumption [kg/s].
+    Returns:
+        float: Pressure surplus [Pa] at this mass_flow.
     """
-    # --- Thermal balance (needed because pump performance depends on T_c_avg) ---
-    Cp_c_in = Cp_func(T_in)
+    cp_c_in = cp_func(t_in)
+    t_c_out_k = t_in + heat_load / (max(mass_flow, 1e-10) * cp_c_in)
+    t_c_avg_k = (t_in + t_c_out_k) / 2
+    p_supplied = pump_head_curve(mass_flow, t_c_avg_k)
+    p_loss = system_head_loss_calc(mass_flow, t_c_avg_k)
+    return p_supplied - p_loss
 
-    # Outlet coolant temperature from energy balance
-    T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero
-    # Mean coolant temperature in loop
-    T_c_avg_K = (T_in + T_c_out_K) / 2
-
-    # --- Hydraulic balance ---
-    P_supplied = pump_head_curve(m_dot, T_c_avg_K)
-    P_loss = system_head_loss_calc(m_dot, T_c_avg_K)
-
-    return P_supplied - P_loss
-
-
-def df(m_dot):
+def pressure_root_deriv(mass_flow):
     """
-    Numerical derivative of pressure_balance_couple() using finite differences.
+    Finite-difference derivative of pressure_balance_couple().
+    Args:
+        mass_flow (float): Current mass flow [kg/s].
+    Returns:
+        float: Approximated derivative.
     """
     H = 1e-8
-    return (pressure_balance_couple(m_dot + H) - pressure_balance_couple(m_dot)) / H
-
+    return (pressure_balance_couple(mass_flow + H) - pressure_balance_couple(mass_flow)) / H
 
 # -------------------------------------------------------------------
 # MAIN STEADY-STATE SOLVER
 # -------------------------------------------------------------------
-
-def calculate_steady_state_mass_flow(Q_gen, guess_m_dot):
+def calculate_steady_state_mass_flow(generated_heat, guess_mass_flow):
     """
-    Computes steady-state:
-        - mass flow rate m_dot_ss
-        - average coolant temperature T_c_avg
-        - heat transfer coefficient h_ss
-    """
-    global Q_heat
-    Q_heat = Q_gen  # update global heat load
+    Solve coupled thermohydraulic steady-state problem.
+    Returns mass flow, mean temperature, and heat transfer coefficient.
 
-    # Safety check: too much heat for this channel geometry
-    if Q_gen >= Q_limit:
+    Args:
+        generated_heat (float): Input heat load [W].
+        guess_mass_flow (float): Initial guess for mass flow [kg/s].
+    Returns:
+        tuple: (mass_flow, T_c_avg_K, h_ss)
+    """
+    global heat_load
+    heat_load = generated_heat
+    if generated_heat >= heat_limit:
         print("Warning: Heat generation exceeds geometric cooling limits.")
-
-    # ---- Solve hydraulic balance for m_dot using Newton–Raphson ----
-    m_dot = newton(pressure_balance_couple, df, guess_m_dot,
-                   epsilon=1e-6, max_iter=100, args=()) / (2 * n)
-
-    if m_dot is None:
+    mass_flow = newton(pressure_balance_couple, pressure_root_deriv, guess_mass_flow, epsilon=1e-6, max_iter=100, args=()) / (2 * n)
+    if mass_flow is None:
         print("Warning: Newton-Raphson failed. Returning fallback value.")
-        m_dot = 1e-6
-
-    # ---- Compute resulting coolant temperature ----
-    Cp_c_in = Cp_func(T_in)
-    T_c_out_K = T_in + Q_heat / (max(m_dot, 1e-10) * Cp_c_in)  # Protect against division by zero  
-    T_c_avg_K = (T_in + T_c_out_K) / 2
-
-    # ---- Ensure physically meaningful m_dot (no runaway heating) ----
-    if m_dot == m_dot_limit:
+        mass_flow = 1e-6
+    cp_c_in = cp_func(t_in)
+    t_c_out_k = t_in + heat_load / (mass_flow * cp_c_in)
+    t_c_avg_k = (t_in + t_c_out_k) / 2
+    
+    while mass_flow < mass_flow_limit and t_c_avg_k > (t_b_max+t_in)/2:
+        mass_flow += 1e-8
+        t_c_out_k = t_in + heat_load / (mass_flow * cp_c_in)
+        t_c_avg_k = (t_in + t_c_out_k) / 2
+        
+    if mass_flow == mass_flow_limit:
         print("Mass flowrate limit reached.")
-
-    # Heat transfer coefficient at steady state
-    h_ss = calculate_h(T_c_avg_K)
-
-    return m_dot, T_c_avg_K, h_ss
-
+    h_ss = calculate_h(t_c_avg_k)
+    return mass_flow, t_c_avg_k, h_ss
 
 # -------------------------------------------------------------------
 # DRIVER FUNCTION (no plotting)
 # -------------------------------------------------------------------
-
 def run():
     """
-    Runs one steady-state calculation and returns flow–residual curves.
+    Run steady-state solution, return flow curve and residuals (diagnostic/sweep only).
+    Returns:
+        dict: {'mass_flow': m_range, 'residuals': residuals}
     """
-    # Ensure current list is initialized
-    if len(I_store) == 0:
-        I_store.append(I_0)
-
-    Q_gen = I_store[-1]**2 * R_b  # Electrical → heat
-
-    # Solve steady state
-    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(Q_gen, M_DOT)
-
-    # Output results
-    if m_dot_ss > 0:
-        print(f"Mass Flow Rate: {m_dot_ss:.8f} kg/s")
-        print(f"Average Coolant Temperature: {T_c_avg_K:.2f} K ({T_c_avg_K - 273.15:.2f} °C)")
+    if current_store[-1] == 0:
+        current_store.append(current_0)
+    generated_heat = current_store[-1] ** 2 * r_b
+    mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
+    print(current_store[-1])
+    if mass_flow_ss > 0:
+        print(f"Mass Flow Rate: {mass_flow_ss:.8f} kg/s")
+        print(f"Average Coolant Temperature: {t_c_avg_k:.2f} K ({t_c_avg_k - 273.15:.2f} °C)")
     else:
         print("Solver failed: non-physical flow result.")
-
-    # Residual sweep for diagnostics (no plot)
-    m_range = np.linspace(M_DOT, 0.02, 1000)
+    m_range = np.linspace(mass_flow_initial, 0.02, 1000)
     residuals = [pressure_balance_couple(m) for m in m_range]
-
     return {"mass_flow": m_range, "residuals": residuals}
-
 
 def get_steady_state_values():
     """
-    External accessor for steady-state values.
-    Prevents circular imports.
+    Convenience wrapper to fetch steady-state result, prevents circular import.
+    Returns:
+        tuple: (mass_flow, t_c_avg_k, h_ss)
     """
-    if len(I_store) == 0:
-        I_store.append(I_0)
+    if current_store[-1] == 0:
+        current_store.append(current_0)
+    generated_heat = current_store[-1] ** 2 * r_b
+    return calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
 
-    Q_gen = I_store[-1]**2 * R_b
-    return calculate_steady_state_mass_flow(Q_gen, M_DOT)
-
-
-# Run directly if executed as a script
 if __name__ == "__main__":
     run()
