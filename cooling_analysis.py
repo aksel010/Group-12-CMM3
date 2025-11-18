@@ -102,7 +102,7 @@ def run():
     """
     Run and print total head loss using lowest allowed flow rate.
     """
-    head_loss = calculate_head_loss_only(flowrate_min)
+    head_loss = calculate_head_loss_only(FLOWRATE_MIN)
     print(f"Total Group A head loss: {head_loss:.6f} m")
 
 if __name__ == "__main__":

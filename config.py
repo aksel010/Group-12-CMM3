@@ -46,7 +46,7 @@ M_DOT = 0.0001  # [kg/s] nominal mass flowrate
 N_HEPTANE_MOLAR_MASS = 0.100205  # [kg/mol]
 DITTUS_BOELTER_EXPONENT = 0.4
 C_RE = 4 * M_DOT / (np.pi * d)  # Reynolds const for flow
-flowrate_min = 5.0 / 60000  # [m^3/s] min. pump flow
+FLOWRATE_MIN = 5.0 / 60000  # [m^3/s] min. pump flow
 
 # ========== RK4 Solver Parameters ========== #
 H = 30  # RK4 time integration step size [s]

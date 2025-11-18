@@ -36,7 +36,7 @@ current_range = np.linspace(0.35, 7.0, 40)
 c_rates = []
 t_totals = []
 for current in current_range:
-    c_rate_val = current / Capacity_battery
+    c_rate_val = current / capacity_battery
     t_total_val = q_b / current / 3600  # (s → h)
     c_rates.append(c_rate_val)
     t_totals.append(t_total_val)
