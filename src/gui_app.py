@@ -17,7 +17,7 @@ try:
     import scripts.Real_Charging_Time as rct
     import src.models.cooling_analysis as ca
     import src.utils.heptane_itpl as hi
-    from config import I_Threshold
+    from src.config import I_Threshold
 except ImportError as e:
     print(f"Warning: Could not import module: {e}")
 

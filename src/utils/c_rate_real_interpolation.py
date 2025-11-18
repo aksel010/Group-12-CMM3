@@ -8,7 +8,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from config import *
+from src.config import *
 
 # --------------------------------------------------------------------------- #
 # Data load and preparation

@@ -5,7 +5,7 @@ PEP8 module docstring, function-level docstrings detailed for all ODE/physical/m
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from config import *
+from src.config import *
 from src.utils.heptane_itpl import lambda_func, Cp_func, mu_func, rho_func
 from src.models.ODE import dTb_dt
 

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-from config import *
+from src.config import *
 
 # --------------------------------------------------------------------------- #
 # Load NIST thermophysical property data

@@ -3,7 +3,7 @@ Estimate and report the truncation error for the RK4 ODE solver, comparing singl
 PEP8-compliant docstrings/descriptions for all functions and script blocks.
 """
 import numpy as np
-from config import *
+from src.config import *
 from src.models.ODE import Tb, dTb_dt, params_initial
 
 

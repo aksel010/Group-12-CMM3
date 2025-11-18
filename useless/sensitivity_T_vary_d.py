@@ -10,7 +10,7 @@ the geometry parameters in config.py for each iteration.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from config import * # IMPORTANT: Import * to allow dynamic updating of globals
+from src.config import * # IMPORTANT: Import * to allow dynamic updating of globals
 import ODE
 import Mass_flowrate as mf
 import Optimum_Current as oc

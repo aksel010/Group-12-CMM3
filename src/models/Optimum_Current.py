@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import time
 
 from src.models.ODE import Tb, dTb_dt
-from config import *
+from src.config import *
 from src.models.Mass_flowrate import get_steady_state_values
 from src.models.RK4_Error import get_rk4_error_val
 from src.utils.interpolater import *

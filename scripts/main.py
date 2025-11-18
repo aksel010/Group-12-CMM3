@@ -5,7 +5,7 @@ Runs all module analyses and presents a unified results dashboard. PEP8-style do
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from config import *
+from src.config import *
 import src.models.ODE as ODE
 import src.models.RK4_Error as rk4e
 import src.models.Mass_flowrate as mf

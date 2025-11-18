@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from src.models.Mass_flowrate import calculate_steady_state_mass_flow
-from config import *
+from src.config import *
 
 # Simulation parameters
 current_values = np.linspace(2.0, 20.0, 19)  # Range of currents (A)

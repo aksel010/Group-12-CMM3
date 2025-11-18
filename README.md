@@ -1,17 +1,14 @@
 # Advanced Battery Thermal Management System (BTMS) for PHEVs Using Fuel-Based Cooling
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
 This repository contains a Python-based computational framework for simulating and optimizing an innovative Battery Thermal Management System (BTMS) for Plug-in Hybrid Electric Vehicles (PHEVs). The system employs the vehicle's fuel (n-heptane) as coolant medium, offering superior thermal performance compared to conventional water-glycol systems.
 
 **Research Objectives:**
-- Determine minimum feasible charging time while maintaining battery temperature below 35°C
-- Optimize cooling channel geometry (number, layout, configuration)
+- Determine minimum feasible charging time while maintaining battery temperature below 40°C
 - Maximize charging current within thermal constraints
-- Evaluate multiple channel layouts (Parallel, Serpentine, U-Type)
 
 ## Key Features
 

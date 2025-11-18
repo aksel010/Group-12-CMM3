@@ -12,7 +12,7 @@ import numpy as np
 from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
 from src.models.cooling_analysis import get_head_loss
-from config import *
+from src.config import *
 from src.utils.heptane_itpl import calculate_h, Cp_func, rho_func, mu_func
 from src.utils.root_finders import newton
 
