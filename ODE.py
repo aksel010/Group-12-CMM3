@@ -9,23 +9,16 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
-# Battery parameters (typical 18650 Li-ion battery)
-m_b = 0.045           # kg (45g typical 18650 mass)
-c_b = 900            # J/(kg·K) (typical battery specific heat)
-
-# Thermal and electrical parameters
-t_in = 293.15        # K (20°C inlet temperature)
-
 
 # Complete params_initial tuple
 params_initial = (
-    m_b,      # Mass of bulk, [kg] = 0.045
-    c_b,      # Specific heat capacity, [J/(kg·K)] = 900
-    current_0,        # Current, [A] = 4 (reduced from 8 for stability)
-    r_b,    # Resistance, [Ω] = 0.05 (removed *24 multiplier)
-    a_s,      # Surface area, [m²] = 0.0025
-    t_in,     # Inlet Temperature, [K] = 293.15
-    get_steady_state_values()[0]      # Mass flow rate, [kg/s] = 0.01 (10g/s, conservative)
+    m_b,       # 0.045 kg
+    c_b,       # 900 J/(kg·K)
+    15,      # Increased current to 15A
+    0.06,      # Fixed resistance of 0.08Ω (gives 18W heating)
+    a_s,       # 0.0025 m²
+    t_in,      # 293.15 K
+    1e-100       # Very low mass flow
 )
 
 def d_tb_dt(tb, t, params):

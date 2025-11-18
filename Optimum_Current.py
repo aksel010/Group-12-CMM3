@@ -30,13 +30,13 @@ def current_params(current):
             for dTb_dt ODE function.
     """
     return (
-        m_b,
+        m_cell*24,
         c_b,
         current,
-        r_b,
+        dc_ir*24,
         a_s,
         t_in,
-        calculate_steady_state_mass_flow(current**2*r_b, mass_flow_initial)
+        calculate_steady_state_mass_flow(current**2*r_b, mass_flow_initial)[0]
     )
 
 
@@ -119,10 +119,6 @@ def run():
     Side Effects:
         Prints progress, timing, RMSE, and root-finding results. Displays plot.
     """
-    
-    # Extract scalar value if it's an array/list
-    if isinstance(mass_flow_ss, (list, np.ndarray)):
-        mass_flow_ss = mass_flow_ss[-1]
 
     rk4_error_val = get_rk4_error_val()
 
@@ -135,18 +131,15 @@ def run():
     delta_temp = []
 
     # Run from 6 A to 13 A (adjust range as needed for zero crossing)
-    for current in np.arange(6, 13, 1):
+    for current in np.arange(6, 500, 5):
         iter_start = time.time()
         
         # Total discharge time at this current
         t_total = q_b / current
         
         # Solve temperature ODE using RK4 solver
-        time_points, temp_battery = get_tb(d_tb_dt, current_params(current), stepsize=30)
+        time_points, temp_battery = get_tb(d_tb_dt, current_params(current), stepsize=0.2)
 
-        plt.plot(time_points, temp_battery)
-        plt.show()
-        
         current_runs.append(current)
         final_temperatures.append(temp_battery[-1])
         

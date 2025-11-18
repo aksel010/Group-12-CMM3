@@ -18,7 +18,7 @@ def rk4_error():
     T_halfstep, t_halfstep = get_tb(d_tb_dt, params_initial, stepsize=rk4_step / 2)
     p = 4.0  # RK4 method order
     T_half_reshaped = T_halfstep[::2]
-    T_full_reshaped = T_fullstep
+    T_full_reshaped = np.delete(T_fullstep, len(T_fullstep)-1)
     T_diff = np.array(T_half_reshaped) - np.array(T_full_reshaped)
     estimated_error = np.max(np.abs(T_diff)) / (2**p - 1)
     return estimated_error
