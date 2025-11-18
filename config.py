@@ -43,10 +43,10 @@ A_s = L_b *(2*w_branch + 2*h_branch)  # wetted area of branch
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties
-m_dot = 0.0001    # Initial mass flow rate [kg/s]
+m_dot_init = 0.0001    # Initial mass flow rate [kg/s]
 N_HEPTANE_MOLAR_MASS = 0.100205
 DITTUS_BOELTER_EXPONENT = 0.4
-C_RE = 4 * m_dot / (np.pi * D) # derived constant Reynlds no.
+C_RE = 4 * m_dot_init / (np.pi * D) # derived constant Reynlds no.
 
 #Pump Properties
 flowrate_min = 5.0 /60000 # m^3/s
