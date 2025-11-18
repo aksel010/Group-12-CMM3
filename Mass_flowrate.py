@@ -95,14 +95,14 @@ def pressure_root_deriv(mass_flow):
 # -------------------------------------------------------------------
 # MAIN STEADY-STATE SOLVER
 # -------------------------------------------------------------------
-def calculate_steady_state_mass_flow(generated_heat, mass_flow_initial):
+def calculate_steady_state_mass_flow(generated_heat, guess_mass_flow):
     """
     Solve coupled thermohydraulic steady-state problem.
     Returns mass flow, mean temperature, and heat transfer coefficient.
 
     Args:
         generated_heat (float): Input heat load [W].
-        mass_flow_initial (float): Initial guess for mass flow [kg/s].
+        guess_mass_flow (float): Initial guess for mass flow [kg/s].
     Returns:
         tuple: (mass_flow, T_c_avg_K, h_ss)
     """
@@ -110,7 +110,7 @@ def calculate_steady_state_mass_flow(generated_heat, mass_flow_initial):
     heat_load = generated_heat
     if generated_heat >= heat_limit:
         print("Warning: Heat generation exceeds geometric cooling limits.")
-    mass_flow = newton(pressure_balance_couple, pressure_root_deriv, mass_flow_initial, epsilon=1e-6, max_iter=100, args=()) / (2 * n)
+    mass_flow = newton(pressure_balance_couple, pressure_root_deriv, guess_mass_flow, epsilon=1e-6, max_iter=100, args=()) / (2 * n)
     if mass_flow is None:
         print("Warning: Newton-Raphson failed. Returning fallback value.")
         mass_flow = 1e-6
@@ -119,7 +119,7 @@ def calculate_steady_state_mass_flow(generated_heat, mass_flow_initial):
     t_c_avg_k = (t_in + t_c_out_k) / 2
     
     while mass_flow < mass_flow_limit and t_c_avg_k > (t_b_max+t_in)/2:
-        mass_flow += 10e8
+        mass_flow += 1e-8
         t_c_out_k = t_in + heat_load / (mass_flow * cp_c_in)
         t_c_avg_k = (t_in + t_c_out_k) / 2
         
