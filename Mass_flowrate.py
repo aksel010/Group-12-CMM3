@@ -95,14 +95,14 @@ def pressure_root_deriv(mass_flow):
 # -------------------------------------------------------------------
 # MAIN STEADY-STATE SOLVER
 # -------------------------------------------------------------------
-def calculate_steady_state_mass_flow(generated_heat, guess_mass_flow):
+def calculate_steady_state_mass_flow(generated_heat, mass_flow_initial):
     """
     Solve coupled thermohydraulic steady-state problem.
     Returns mass flow, mean temperature, and heat transfer coefficient.
 
     Args:
         generated_heat (float): Input heat load [W].
-        guess_mass_flow (float): Initial guess for mass flow [kg/s].
+        mass_flow_initial (float): Initial guess for mass flow [kg/s].
     Returns:
         tuple: (mass_flow, T_c_avg_K, h_ss)
     """
@@ -110,7 +110,7 @@ def calculate_steady_state_mass_flow(generated_heat, guess_mass_flow):
     heat_load = generated_heat
     if generated_heat >= heat_limit:
         print("Warning: Heat generation exceeds geometric cooling limits.")
-    mass_flow = newton(pressure_balance_couple, pressure_root_deriv, guess_mass_flow, epsilon=1e-6, max_iter=100, args=()) / (2 * n)
+    mass_flow = newton(pressure_balance_couple, pressure_root_deriv, mass_flow_initial, epsilon=1e-6, max_iter=100, args=()) / (2 * n)
     if mass_flow is None:
         print("Warning: Newton-Raphson failed. Returning fallback value.")
         mass_flow = 1e-6
@@ -134,13 +134,13 @@ def run():
     if len(current_store) == 0:
         current_store.append(current_0)
     generated_heat = current_store[-1] ** 2 * r_b
-    mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, M_DOT)
+    mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
     if mass_flow_ss > 0:
         print(f"Mass Flow Rate: {mass_flow_ss:.8f} kg/s")
         print(f"Average Coolant Temperature: {t_c_avg_k:.2f} K ({t_c_avg_k - 273.15:.2f} °C)")
     else:
         print("Solver failed: non-physical flow result.")
-    m_range = np.linspace(M_DOT, 0.02, 1000)
+    m_range = np.linspace(mass_flow_initial, 0.02, 1000)
     residuals = [pressure_balance_couple(m) for m in m_range]
     return {"mass_flow": m_range, "residuals": residuals}
 
@@ -153,7 +153,7 @@ def get_steady_state_values():
     if len(current_store) == 0:
         current_store.append(current_0)
     generated_heat = current_store[-1] ** 2 * r_b
-    return calculate_steady_state_mass_flow(generated_heat, M_DOT)
+    return calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
 
 if __name__ == "__main__":
     run()
