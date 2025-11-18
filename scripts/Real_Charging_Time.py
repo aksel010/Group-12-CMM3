@@ -1,9 +1,10 @@
 """
 Compute and report practical battery fast-charging rates and durations given an optimum current, with clear docstrings and comments.
 """
-from src.config import *
 import sys
-import io
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.config import *
 
 def calculate_charging_performance(critical_current, battery_capacity_Ah, efficiency=0.85):
     """

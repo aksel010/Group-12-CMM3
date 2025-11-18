@@ -3,6 +3,10 @@ Main execution script for Group-12-CMM3 consolidated analysis and visualization.
 
 Runs all module analyses and presents a unified results dashboard. PEP8-style docstrings and structured comments included.
 """
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 import matplotlib.pyplot as plt
 from src.config import *
