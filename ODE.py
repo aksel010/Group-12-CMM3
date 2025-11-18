@@ -14,8 +14,6 @@ m_b = 0.045           # kg (45g typical 18650 mass)
 c_b = 900            # J/(kg·K) (typical battery specific heat)
 
 # Thermal and electrical parameters
-dc_ir = 0.05         # Ω (internal resistance)
-a_s = 0.0025         # m² (surface area ~18mm diameter x 65mm height)
 t_in = 293.15        # K (20°C inlet temperature)
 
 
@@ -24,7 +22,7 @@ params_initial = (
     m_b,      # Mass of bulk, [kg] = 0.045
     c_b,      # Specific heat capacity, [J/(kg·K)] = 900
     current_0,        # Current, [A] = 4 (reduced from 8 for stability)
-    dc_ir,    # Resistance, [Ω] = 0.05 (removed *24 multiplier)
+    r_b,    # Resistance, [Ω] = 0.05 (removed *24 multiplier)
     a_s,      # Surface area, [m²] = 0.0025
     t_in,     # Inlet Temperature, [K] = 293.15
     get_steady_state_values()[0]      # Mass flow rate, [kg/s] = 0.01 (10g/s, conservative)

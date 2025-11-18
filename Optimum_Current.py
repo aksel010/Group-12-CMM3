@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import time
 from ODE import get_tb, d_tb_dt
 from config import *
-from Mass_flowrate import get_steady_state_values
+from Mass_flowrate import calculate_steady_state_mass_flow
 from RK4_Error import get_rk4_error_val
 from interpolater import *
 from root_finders import bisection, newton
@@ -33,10 +33,10 @@ def current_params(current):
         m_b,
         c_b,
         current,
-        dc_ir * 24,
+        r_b,
         a_s,
         t_in,
-        get_steady_state_values()[0]
+        calculate_steady_state_mass_flow(current**2*r_b, mass_flow_initial)
     )
 
 
@@ -119,12 +119,6 @@ def run():
     Side Effects:
         Prints progress, timing, RMSE, and root-finding results. Displays plot.
     """
-    # Get steady-state flow
-    steady_state_result = get_steady_state_values()
-    if isinstance(steady_state_result, tuple):
-        mass_flow_ss = steady_state_result[0]
-    else:
-        mass_flow_ss = steady_state_result
     
     # Extract scalar value if it's an array/list
     if isinstance(mass_flow_ss, (list, np.ndarray)):
