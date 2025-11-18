@@ -131,7 +131,7 @@ def run():
     generated_heat = I_store[-1]**2 * R_b  # Electrical → heat
 
     # Solve steady state
-    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(generated_heat, m_dot)
+    m_dot_ss, T_c_avg_K, h_ss = calculate_steady_state_mass_flow(generated_heat, m_dot_init)
 
     # Output results
     if m_dot_ss > 0:
@@ -156,7 +156,7 @@ def get_steady_state_values():
         I_store.append(I_0)
 
     generated_heat = I_store[-1]**2 * R_b
-    return calculate_steady_state_mass_flow(generated_heat, m_dot)
+    return calculate_steady_state_mass_flow(generated_heat, m_dot_init)
 
 
 # Run directly if executed as a script
