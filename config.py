@@ -7,19 +7,19 @@ g = 9.81
 # NIMH battery properties
 """Battery pack is made up of 48 L5 modules, such that one channel passes through 24 cells."""
 n_cell = 240
-V_cell = 1.2  # V per cell,
-Capacity_cell = 6  # Ah per cell
-Energy_cell = 7.2  # Wh per cell
-DC_IR = 2.5e-3  # Ohm per cell
+v_cell = 1.2  # V per cell,
+capacity_cell = 6  # Ah per cell
+energy_cell = 7.2  # Wh per cell
+dc_ir = 2.5e-3  # Ohm per cell
 m_cell = 0.158 # test cell mass
 
 # Battery pack properties
 m_b = m_cell * n_cell  # kg total battery pack
 C_b = 2788  #J/kgK  https://doi.org/10.1016/S0378-7753(98)00064-0
-Capacity_battery = Capacity_cell
-q_b =  Capacity_cell * 3600  #As 
-V_b = V_cell * n_cell
-R_b = DC_IR * n_cell  # Ohm total battery pack
+capacity_battery = capacity_cell
+q_b =  capacity_cell * 3600  #As 
+v_b = v_cell * n_cell
+R_b = dc_ir * n_cell  # Ohm total battery pack
 I_0 = 15 # A initial current
 I_store = [0]
 I_Threshold = 1e-6
@@ -43,10 +43,10 @@ A_s = L_b *(2*w_branch + 2*h_branch)  # wetted area of branch
 d_H = 2 * w_branch * h_branch / (w_branch + h_branch)
 
 #N_heptane properties
-M_DOT = 0.0001    # Initial mass flow rate [kg/s]
+m_dot = 0.0001    # Initial mass flow rate [kg/s]
 N_HEPTANE_MOLAR_MASS = 0.100205
 DITTUS_BOELTER_EXPONENT = 0.4
-C_RE = 4 * M_DOT / (np.pi * D) # derived constant Reynlds no.
+C_RE = 4 * m_dot / (np.pi * D) # derived constant Reynlds no.
 
 #Pump Properties
 flowrate_min = 5.0 /60000 # m^3/s
