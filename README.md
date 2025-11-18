@@ -1,10 +1,10 @@
-# Advanced Battery Thermal Management System (BTMS) for PHEVs Using Fuel-Based Cooling
+# Group-12-CMM3 - Advanced Battery Thermal Management System
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 
 ## Overview
 
-This repository contains a Python-based computational framework for simulating and optimizing an innovative Battery Thermal Management System (BTMS) for Plug-in Hybrid Electric Vehicles (PHEVs). The system employs the vehicle's fuel (n-heptane) as coolant medium, offering superior thermal performance compared to conventional water-glycol systems.
+This repository contains a Python-based computational framework for simulating and optimizing an innovative Battery Thermal Management System (BTMS) for Plug-in Hybrid Electric Vehicles (PHEVs). The system employs the vehicle's fuel (n-heptane) as a coolant medium, offering superior thermal performance compared to conventional water-glycol systems.
 
 **Research Objectives:**
 - Determine minimum feasible charging time while maintaining battery temperature below 40°C
@@ -21,7 +21,7 @@ This repository contains a Python-based computational framework for simulating a
 ## Project Structure
 
 ```
-btms-simulation/
+Group-12-CMM3-1/
 ├── README.md                      # This file
 ├── requirements.txt               # Python dependencies
 ├── .gitignore                     # Version control exclusions
@@ -32,33 +32,37 @@ btms-simulation/
 │
 ├── src/                           # Source code
 │   ├── models/                    # Core physics models
-│   │   ├── battery_model.py       # Thermal and electrochemical
-│   │   ├── coolant_model.py       # n-heptane properties
-│   │   ├── flow_model.py          # Fluid dynamics
-│   │   └── geometry_model.py      # Channel configurations
+│   │   ├── cooling_analysis.py    # Cooling channel network head-loss model
+│   │   ├── Mass_flowrate.py       # Thermohydraulic coolant loop and mass flow rate calculation
+│   │   ├── ODE.py                 # Battery temperature evolution using RK4 and SciPy
+│   │   ├── Optimum_Current.py     # Battery charging current optimization
+│   │   └── RK4_Error.py           # RK4 error analysis
 │   │
 │   ├── analysis/                  # Sensitivity studies
-│   │   └── optimization_engine.py # Multi-objective optimization
+│   │   ├── mass_flow_rate_current_sensitivity_anaylysis.py
+│   │   ├── sensitivity_T_vary_mdot.py
+│   │   └── time_sensitivity_analysis.py
 │   │
 │   ├── utils/                     # Helper functions
-│   │   ├── simulation_runner.py   # Orchestration
-│   │   ├── visualization.py       # Plotting
-│   │   └── process_nist_data.py   # Data preprocessing
+│   │   ├── c_rate_real_interpolation.py
+│   │   ├── clear_values.py
+│   │   ├── heptane_itpl.py        # n-heptane thermophysical properties
+│   │   ├── interpolater.py
+│   │   └── root_finders.py
+│   │
+│   ├── visualisation/             # Plotting functions
+│   │   └── comparison_plot.py
 │   │
 │   ├── config.py                  # Configuration parameters
 │   └── gui_app.py                 # Graphical interface
 │
 ├── scripts/                       # Executable entry points
-│   └── main_simulation.py         # CLI interface
+│   ├── main.py                    # Main execution script
+│   └── Real_Charging_Time.py
 │
 ├── tests/                         # Unit tests and validation
-│   ├── test_battery_model.py
-│   ├── test_coolant_model.py
-│   └── test_flow_model.py
 │
 ├── docs/                          # Documentation
-│   ├── methodology.md             # Mathematical formulation
-│   └── user_guide.md              # Usage instructions
 │
 └── results/                       # Generated outputs (git-ignored)
     ├── figures/
@@ -77,23 +81,20 @@ btms-simulation/
 
 ```bash
 # Clone repository
-git clone https://github.com/GPMorg/Greg-Git.git
-cd Greg-Git
+# git clone <repository-url>
+# cd Group-12-CMM3-1
 
 # Create virtual environment
 python -m venv venv
 
 # Activate virtual environment
 # Windows:
-venv\Scripts\activate
+virtualenv\Scripts\activate
 # macOS/Linux:
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Process thermophysical data (first-time only)
-python src/utils/process_nist_data.py
 ```
 
 ### Dependencies
@@ -117,93 +118,38 @@ The GUI provides:
 - Parameter configuration interface
 - Real-time simulation progress
 - Interactive result visualization
-- Channel layout diagrams
 
 ### Command-Line Interface
 
 ```bash
-python scripts/main_simulation.py
+python scripts/main.py
 ```
 
-Outputs optimal design parameters:
-- Number of cooling channels
-- Charging current (A)
-- Minimum charging time (s)
-- Maximum battery temperature (°C)
+Outputs optimal design parameters and plots:
+- Optimum Current (A)
+- ODE Solution Validation
+- Pressure Balance Residual
 
 ### Python API
 
 ```python
-from src.models.battery_model import BatteryPack
-from src.models.coolant_model import CoolantSystem
-from src.models.flow_model import FlowSystem
-from src.models.geometry_model import GeometryConfig
-from src.analysis.optimization_engine import Optimizer
+import src.models.ODE as ODE
+import src.models.Mass_flowrate as mf
+import src.models.Optimum_Current as oc
 
-# Initialize models
-battery = BatteryPack(mass=10.0, cp=1000.0, resistance=0.05, 
-                      capacity_ah=27.0, max_temp_c=35.0)
-coolant = CoolantSystem()
-geometry = GeometryConfig(channel_length=0.5, channel_width=0.002, 
-                          channel_height=0.001)
-flow = FlowSystem(max_pressure_pa=50000.0, coolant_system=coolant)
-
-# Configure simulation
-config = {
-    'battery_max_temp': 35.0,
-    'coolant_inlet_temp': 20.0,
-    'time_end': 3600.0,
-    'time_step': 1.0,
-    'initial_temp': 25.0,
-    'layout_type': 'Parallel'
-}
-
-# Run optimization
-optimizer = Optimizer(battery, coolant, flow, geometry, config)
-I_max = optimizer.find_max_current(N_channels=10)
-results = optimizer.run_simulation(N=10, current=I_max)
-
-print(f"Maximum temperature: {results['T_b'].max() - 273.15:.2f}°C")
+# Run the full analysis
+if __name__ == "__main__":
+    # Run convergence loop for optimum current
+    current_store_result = compute_optimum_current(threshold=1e-6)
+    print(f'\n✓ Model converged after {len(current_store_result)} iterations')
+    print(f'Optimum Current: {current_store_result[-1]:.4f} A\n')
+    print("==== Group 12 - CMM3 Consolidated Results ====\n")
+    ode_data = ODE.run()
+    print("\n--- Mass Flowrate Solver ---")
+    mf_data = mf.run()
+    print("\n--- Optimum Current Analysis ---")
+    oc_data = oc.run()
 ```
-
-## Mathematical Framework
-
-### Thermal Dynamics
-
-Battery node energy balance:
-
-$$\frac{dT_{b,i}}{dt} = \frac{Q_{gen,i} - Q_{cool,i} + Q_{cond,i}}{m_i c_{p,i}}$$
-
-Where:
-- $Q_{gen} = I^2 R$ (Joule heating)
-- $Q_{cool}$ = convective heat removal
-- $Q_{cond}$ = inter-node conduction
-
-### Heat Transfer
-
-Effectiveness-NTU method:
-
-$$NTU = \frac{hA}{\dot{m} c_p}, \quad \epsilon = 1 - e^{-NTU}$$
-
-$$Q_{cool} = \epsilon \dot{m} c_p (T_b - T_{c,in})$$
-
-Nusselt number (Dittus-Boelter correlation):
-
-$$Nu = 0.023 Re^{0.8} Pr^{0.4}, \quad h = \frac{Nu \cdot k}{D_h}$$
-
-### Fluid Dynamics
-
-Darcy-Weisbach equation for pressure drop:
-
-$$\Delta P = f \frac{L}{D_h} \frac{\rho u^2}{2} + K_{minor} \frac{\rho u^2}{2}$$
-
-Reynolds number:
-
-$$Re = \frac{\rho u D_h}{\mu}$$
-
-Friction factor (Blasius, turbulent):
-
-$$f = \frac{0.316}{Re^{0.25}} \quad (Re > 2300)$$
 
 ## Configuration Parameters
 
@@ -211,97 +157,44 @@ $$f = \frac{0.316}{Re^{0.25}} \quad (Re > 2300)$$
 
 | Parameter | Default | Units | Description |
 |-----------|---------|-------|-------------|
-| Mass | 10.0 | kg | Battery pack mass |
-| Specific heat | 1000.0 | J/(kg·K) | Heat capacity |
-| Resistance | 0.05 | Ω | Internal resistance |
-| Capacity | 27.0 | Ah | Charge capacity |
-| Max temperature | 35.0 | °C | Thermal limit |
+| n_cell | 240 | - | total number of cells |
+| v_cell | 1.2 | V | per cell |
+| capacity_cell | 6 | Ah | per cell |
+| dc_ir | 2.5e-3 | Ohm | per cell |
+| m_cell | 0.158 | kg | test cell mass |
+| m_b | m_cell * n_cell | kg | total mass |
+| c_b | 2788 | J/kgK | specific heat capacity |
+| q_b | capacity_cell * 3600 | As | total charge |
+| r_b | dc_ir * n_cell | Ohm | total resistance |
+| t_b_max | 40 + 273.13 | K | maximum safe temperature |
+| t_in | 15 + 273.13 | K | inlet coolant temp |
 
 ### Channel Geometry
 
 | Parameter | Default | Units | Description |
 |-----------|---------|-------|-------------|
-| Length | 0.5 | m | Channel length |
-| Width | 0.002 | m | Channel width |
-| Height | 0.001 | m | Channel height |
+| n | 5 | - | number of coolant branches |
+| d | 17e-3 | m | main pipe diameter |
+| w_branch | 30e-3 | m | branch width |
+| h_branch | 2.75e-3 | m | branch height |
+| l_a | 0.5 | m | main pipe segment length |
+| l_b | 0.5 | m | branch length |
+| l_c | 0.2 | m | branch outlet length |
 
 ### Operating Conditions
 
 | Parameter | Default | Units | Description |
 |-----------|---------|-------|-------------|
-| Inlet temperature | 20.0 | °C | Coolant inlet |
-| Max pressure | 50000.0 | Pa | Pump limit |
-| Simulation time | 7200.0 | s | Duration |
-
-## Validation and Verification
-
-### Code Verification
-
-1. **Mesh independence study**: Temperature convergence with node count (N = 5, 10, 20, 40)
-2. **Time-step convergence**: Solution accuracy with varying time steps
-3. **Energy balance**: Verification that $\int Q_{gen} dt = \int Q_{cool} dt + \Delta E_{stored}$
-
-### Physical Validation
-
-1. **Literature comparison**: Results validated against Al Qubeissi et al. (2022)
-2. **Thermodynamic consistency**: Second law verification (entropy generation > 0)
-3. **Limiting cases**: Zero current, infinite flow rate, adiabatic conditions
-
-## Results and Outputs
-
-### Console Output
-
-```
---- Optimization Complete ---
-  Optimal Number of Channels: 12 (Parallel Layout)
-  Optimal Charging Current: 145.32 A
-  Minimum Charging Time: 668.54 s (0.19 hrs)
-  Predicted Max Battery Temp: 34.98 °C
-```
-
-### Visualization
-
-- Temperature evolution plots (time vs. temperature)
-- Channel layout diagrams (saved as PNG)
-- Sensitivity analysis charts
-
-### Data Export
-
-- CSV: Time-series temperature data
-- JSON: Complete simulation results
-- PNG: Publication-quality figures (300 DPI)
-
-## Troubleshooting
-
-### Common Issues
-
-**Issue**: "Fit coefficient file not found"
-```bash
-python src/utils/process_nist_data.py
-```
-
-**Issue**: ODE solver convergence failure
-- Reduce time step in configuration
-- Use BDF method for stiff systems: `method='BDF'`
-- Increase tolerances: `rtol=1e-5, atol=1e-7`
-
-**Issue**: GUI not displaying on remote server
-```bash
-# Enable X11 forwarding
-ssh -X user@server
-export DISPLAY=:0
-```
+| current_0 | 15 | A | initial current |
+| current_threshold | 1e-6 | - | convergence threshold |
+| mass_flow_initial | 0.0001 | kg/s | nominal mass flowrate |
+| H | 30 | s | RK4 time integration step size |
 
 ## Development Team
 
 **University of Edinburgh**
 
-- Nicholas Tan - Thermal modeling and validation
-- Gregory Morgan - Software architecture and optimization
-- Aksel Huillard - Fluid dynamics and heat transfer
-- Leo Pullar - Data processing and visualization
-
-**Contact**: s2297115@sms.ed.ac.uk
+This project was developed by a team of students at the University of Edinburgh.
 
 ## References
 
@@ -312,31 +205,6 @@ export DISPLAY=:0
 3. Incropera, F. P., & DeWitt, D. P. *Fundamentals of Heat and Mass Transfer* (6th ed.). John Wiley & Sons, 2007.
 
 4. White, F. M. *Fluid Mechanics* (7th ed.). McGraw-Hill, 2011.
-
-## Citation
-
-### BibTeX
-
-```bibtex
-@software{btms_phev_2025,
-  title = {Advanced Battery Thermal Management System for PHEVs Using Fuel-Based Cooling},
-  author = {Tan, Nicholas and Morgan, Gregory and Huillard, Aksel and Pullar, Leo},
-  institution = {University of Edinburgh},
-  year = {2025},
-  url = {https://github.com/GPMorg/Greg-Git},
-  version = {1.0.0}
-}
-```
-
-### APA
-
-Tan, N., Morgan, G., Huillard, A., & Pullar, L. (2025). *Advanced Battery Thermal Management System for PHEVs Using Fuel-Based Cooling* (Version 1.0.0) [Computer software]. University of Edinburgh. https://github.com/GPMorg/Greg-Git
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
-**THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.**
 
 ---
 
