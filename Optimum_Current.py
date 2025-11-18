@@ -123,12 +123,12 @@ def run():
     steady_state_result = get_steady_state_values()
     if isinstance(steady_state_result, tuple):
         mass_flow_ss = steady_state_result[0]
-        if hasattr(mass_flow_ss, '__len__'):
-            mass_flow_ss = mass_flow_ss[-1]
     else:
         mass_flow_ss = steady_state_result
-        if hasattr(mass_flow_ss, '__len__'):
-            mass_flow_ss = mass_flow_ss[-1]
+    
+    # Extract scalar value if it's an array/list
+    if isinstance(mass_flow_ss, (list, np.ndarray)):
+        mass_flow_ss = mass_flow_ss[-1]
 
     rk4_error_val = get_rk4_error_val()
 
