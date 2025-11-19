@@ -22,7 +22,7 @@ q_b = capacity_cell * 3600  # [As]
 v_b = v_cell * n_cell  # [V] total
 r_b = dc_ir * n_cell  # [Ohm] total
 current_0 = 17  # [A] initial current
-current_store = [0]  # for optimum current search
+current_store = []  # for optimum current search
 current_threshold = 1e-6  # convergence threshold
 current_error=[]
 

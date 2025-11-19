@@ -13,7 +13,7 @@ from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
 from src.models.cooling_analysis import get_head_loss
 from src.config import *
-from src.utils.heptane_itpl import calculate_h, cp_func, rho_func, mu_func
+from src.utils.heptane_interpolater import calculate_h, cp_func, rho_func, mu_func
 from src.utils.root_finders import newton
 
 # Global heat load, tied to current calculation context

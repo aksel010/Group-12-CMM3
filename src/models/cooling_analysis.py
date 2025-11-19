@@ -5,7 +5,7 @@ All modules, wrappers, and runners fully docstring-annotated and commented.
 """
 import numpy as np
 
-from src.utils.heptane_itpl import rho_func, mu_func
+from src.utils.heptane_interpolater import rho_func, mu_func
 from src.config import *
 
 def calculate_head_loss_only(q_main, t_avg_k=300):

@@ -10,16 +10,16 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import numpy as np
 import matplotlib.pyplot as plt
 from src.config import *
-import src.models.ODE as ODE
-from src.models.ODE import get_tb, d_tb_dt, get_tb_scipy
-import src.models.RK4_Error as rk4e
-import src.models.Mass_flowrate as mf
-import src.models.Optimum_Current as oc
-from src.models.Optimum_Current import current_params
+import src.models.battery_temperature_ode as battery_temperature_ode
+from src.models.battery_temperature_ode import get_tb, d_tb_dt, get_tb_scipy
+import src.models.rk4_error as rk4e
+import src.models.mass_flowrate as mf
+import src.models.optimum_current as oc
+from src.models.optimum_current import current_params
 from src.config import current_store, current_threshold
-import scripts.Real_Charging_Time as rct
+import scripts.charging_time_analysis as rct
 import src.models.cooling_analysis as ca
-import src.utils.heptane_itpl as hi
+import src.utils.heptane_interpolater as hi
 
 def compute_optimum_current(threshold=current_threshold):
     """

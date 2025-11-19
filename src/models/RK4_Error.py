@@ -4,7 +4,7 @@ PEP8-compliant docstrings/descriptions for all functions and script blocks.
 """
 import numpy as np
 from src.config import *
-from src.models.ODE import get_tb, d_tb_dt, params_initial
+from src.models.battery_temperature_ode import get_tb, d_tb_dt, params_initial
 
 
 def rk4_error():

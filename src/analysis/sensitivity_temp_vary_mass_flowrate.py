@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from src.config import *
-from src.utils.heptane_itpl import lambda_func, Cp_func, mu_func, rho_func
-from src.models.ODE import dTb_dt
+from src.utils.heptane_interpolater import lambda_func, Cp_func, mu_func, rho_func
+from src.models.battery_temperature_ode import dTb_dt
 
 def calculate_h(T: float | np.ndarray, m_dot: float) -> float | np.ndarray:
     """

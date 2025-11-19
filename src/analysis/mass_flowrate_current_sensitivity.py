@@ -14,7 +14,7 @@ Requires:
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.models.Mass_flowrate import calculate_steady_state_mass_flow
+from src.models.mass_flowrate import calculate_steady_state_mass_flow
 from src.config import *
 
 # Simulation parameters

@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-from src.models.ODE import get_tb, d_tb_dt
+from src.models.battery_temperature_ode import get_tb, d_tb_dt
 from src.config import *
 from src.models.Mass_flowrate import get_steady_state_values, calculate_steady_state_mass_flow
 from src.models.RK4_Error import get_rk4_error_val
