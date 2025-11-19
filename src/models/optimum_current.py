@@ -157,12 +157,9 @@ def run():
     current_runs = []
     final_temperatures = []
     delta_temp = []
-    
-    # Define current range based on current_0 from config
-    current_start = 1 
-    current_end = current_0 + 10   
 
-    for current in np.arange(current_start, current_end, 1):
+    # loop over current values
+    for current in np.arange(6, 13, 1):
         iter_start = time.time()
         
         # Total discharge time at this current
