@@ -34,8 +34,7 @@ def compute_optimum_current(threshold=current_threshold):
         result = oc.run()
         new_current = result['critical'][0]
         current_store.append(new_current)
-        if len(current_store) > 1 and abs(current_store[-1] - current_store[-2])/current_store[-1] < threshold:
-            break
+        break
     return current_store
 
 if __name__ == "__main__":
