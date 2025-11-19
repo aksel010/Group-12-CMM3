@@ -27,7 +27,7 @@ mass_flow_values = []
 
 for current in current_values:
     # Update last value of current_store if required
-    current_store[-1] = current
+    current_store.append(current)
     # Electrical heat generation (W)
     generated_heat = current ** 2 * r_b
     # Compute steady-state mass flow rate

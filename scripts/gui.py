@@ -72,7 +72,7 @@ class CMM3App(tk.Tk):
         self.current_entry = ttk.Entry(self.input_frame, width=15)
         self.current_entry.insert(0, "17")
         self.current_entry.grid(row=1, column=1, sticky="ew", pady=5, padx=5)
-        ttk.Label(self.input_frame, text="[1 to 20 A]", font=("Arial", 8, "italic"), foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
+        ttk.Label(self.input_frame, text="[1 to 17.5 A]", font=("Arial", 8, "italic"), foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
         
         # Row 2: RK4 Step Size
         ttk.Label(self.input_frame, text="RK4 Step Size (s):", font=("Arial", 10, "bold")).grid(row=2, column=0, sticky="w", pady=5)
@@ -182,8 +182,8 @@ class CMM3App(tk.Tk):
         # Validate ranges
         if not (1e-8 <= threshold <= 1e-4):
             messagebox.showwarning("Range Warning", "Convergence threshold recommended: [1e-8 to 1e-4]")
-        if not (1 <= initial_current <= 20):
-            messagebox.showwarning("Range Warning", "Initial current recommended: [1 to 20 A]")
+        if not (1 <= initial_current <= 17.5):
+            messagebox.showwarning("Range Warning", "Initial current recommended: [1 to 17.5 A]")
         if not (10 <= step_size <= 60):
             messagebox.showwarning("Range Warning", "RK4 step size recommended: [10 to 60 s]")
         if not (35 <= (t_b_max - 273.13) <= 50):
@@ -251,7 +251,7 @@ class CMM3App(tk.Tk):
                 # Convergence check
                 if len(current_store) > 1 and abs(current_store[-1] - current_store[-2]) / current_store[-1] < threshold:
                     converged = True
-                if iteration > 20:
+                if iteration > 17.5:
                     self.result_queue.put({"type": "log", "message": "      Warning: Max iterations reached"})
                     break
             
