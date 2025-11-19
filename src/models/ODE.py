@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # Complete params_initial tuple
 params_initial = (
-    m_b,       # 0.045 kg
+    m_cell,       # 0.045 kg
     c_b,       # 900 J/(kg·K)
     15,      # Increased current to 15A
     0.06,      # Fixed resistance of 0.08Ω (gives 18W heating)
@@ -31,7 +31,7 @@ def d_tb_dt(tb, t, params):
         float: d_tb/dt, rate of temperature change.
     """
     # Unpack parameters
-    m, cp_b, current, r, a_s, t_c_in, m_dot = params
+    mb, cp_b, current, r, a_s, t_c_in, m_dot = params
 
     # Calculate h based on current bulk temperature
     t_c_avg = (tb + t_c_in) / 2
@@ -42,13 +42,13 @@ def d_tb_dt(tb, t, params):
     heating = current**2 * r
 
     # Cooling term denominator
-    cooling_denom = 1 + (h * a_s) / (2 * m * cp_c)
+    cooling_denom = 1 + (h * a_s) / (2 * m_dot * cp_c)
 
     # Cooling term
     cooling = (h * a_s * (tb - t_c_in)) / cooling_denom
 
     # Rate of change of temperature
-    d_tb_dt = (heating - cooling) / (m * cp_b)
+    d_tb_dt = (heating - cooling) / (mb * cp_b)
 
     return d_tb_dt
 
