@@ -226,6 +226,3 @@ def run():
         'smooth': (current_smooth, delta_temp_smooth),
         'critical': (critical_current_bisection, 0)
     }
-
-
-run()

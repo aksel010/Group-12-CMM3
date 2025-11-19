@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -17,7 +20,7 @@ try:
     import scripts.Real_Charging_Time as rct
     import src.models.cooling_analysis as ca
     import src.utils.heptane_itpl as hi
-    from src.config import I_Threshold
+    from src.config import current_threshold
 except ImportError as e:
     print(f"Warning: Could not import module: {e}")
 
