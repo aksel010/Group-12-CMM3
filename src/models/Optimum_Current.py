@@ -150,7 +150,7 @@ def run():
 
     rk4_error_val = get_rk4_error_val()
 
-    print("Computing...")
+    print("Computing... (approx 60-180 seconds)")
     total_start_time = time.time()
 
     # Storage for results

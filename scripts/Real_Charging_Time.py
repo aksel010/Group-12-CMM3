@@ -65,7 +65,7 @@ def run():
     """
     Retrieve the latest critical current, compute and print practical and theoretical fast charge results.
     """
-    print("Computing...")
+    print("Computing... (approx 40-120 seconds)")
     if len(current_store) == 1:
         print("Error: Optimum current not yet calculated!")
 
