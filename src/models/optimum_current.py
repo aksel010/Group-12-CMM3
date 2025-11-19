@@ -173,13 +173,6 @@ def run():
         target_temp = t_b_max - rk4_error_val
         temp_deviation = temp_battery[-1] - target_temp
         delta_temp.append(temp_deviation)
-        
-        iter_time = time.time() - iter_start
-        # Optional: print iteration time if needed
-        # print(f"  Iteration {current}A completed in {iter_time:.3f}s")
-
-    total_time = time.time() - total_start_time
-    print(f"\nTotal data generation time: {total_time:.2f} seconds")
 
     # Convert lists to arrays
     current_array = np.array(current_runs)
@@ -195,9 +188,6 @@ def run():
     
     # Find root via bisection
     try:
-        print("f(a) =", current_profile(current_array, delta_temp_array, current_min))
-        print("f(b) =", current_profile(current_array, delta_temp_array, current_max))
-        
         current_values = np.linspace(current_min, current_max, 100)
         profile_vals = [current_profile(current_array, delta_temp_array, current) for current in current_values]
         
@@ -208,7 +198,6 @@ def run():
             b=current_max,
             tolerance=tolerance
         )
-        print(f"\nBisection result: {critical_current_bisection}")
     except NameError:
         print("Warning: bisection() not found in root_finders — using manual bisection.")
         critical_current_bisection = find_root_cubic_spline(current_array, delta_temp_array)
@@ -227,14 +216,14 @@ def run():
         critical_current_newton = critical_current_bisection
     
     # Calculate RMSE
-    print(f'CS Error :{calculate_spline_error(current_array, delta_temp_array)}K')
+    print(f'Cubic Spline Error :{calculate_spline_error(current_array, delta_temp_array)}K')
     current_error_bisection = calculate_current_error(current_array, delta_temp_array,critical_current_bisection)
     current_error_newton = calculate_current_error(current_array, delta_temp_array,critical_current_newton)
     current_error.append(current_error_bisection)
     current_error.append(current_error_newton)
     
-    print(f"Bisection Critical: {critical_current_bisection:.4f} ± {current_error_bisection:.4f} A")
-    print(f"Newton Critical: {critical_current_newton:.4f} ± {current_error_newton:.4f}A")
+    print(f"Bisection: {critical_current_bisection:.4f} ± {current_error_bisection:.4f} A")
+    print(f"Newton: {critical_current_newton:.4f} ± {current_error_newton:.4f}A")
     
     # Generate smooth interpolated curve
     current_smooth = np.linspace(current_array.min(), current_array.max(), 100)

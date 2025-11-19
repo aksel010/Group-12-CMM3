@@ -19,9 +19,6 @@ def get_params_initial():
         t_in,      # K
         mass_flow_initial       # kg/s - nominal mass flow rate
     )
-    # Debug: print what values we're using
-    print(f"[DEBUG] get_params_initial(): current_0={current_0}, t_in={t_in}")
-    return result
 
 # Complete params_initial tuple (initialized but will be rebuilt by get_params_initial())
 params_initial = get_params_initial()
