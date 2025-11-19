@@ -72,7 +72,7 @@ Group-12-CMM3/
 ### 2.1 System Requirements
 
 - **Python:** 3.8 or higher (tested on 3.9, 3.10, 3.11, 3.13)
-- **Git:** 
+- **Git:** For cloning repository
 - **Storage:** ~500 MB for dependencies
 - **OS:** Windows, macOS, Linux
 
@@ -98,14 +98,14 @@ pip install -e .
 
 ### 3.3 Dependency Stack
 
-| Package | Minimum Version | Purpose |
-|---------|-----------------|---------|
-| numpy | 1.24.0 | Numerical computing and linear algebra |
-| scipy | 1.10.0 | Scientific algorithms and ODE integration |
-| matplotlib | 3.7.0 | Publication-quality visualization |
-| pandas | 2.0.0 | Data I/O and manipulation |
-| seaborn | 0.12.0 | Statistical visualization |
-| scikit-learn | 1.3.0 | Sensitivity analysis and regression |
+| Package      | Minimum Version | Purpose                                   |
+| ------------ | --------------- | ----------------------------------------- |
+| numpy        | 1.24.0          | Numerical computing and linear algebra    |
+| scipy        | 1.10.0          | Scientific algorithms and ODE integration |
+| matplotlib   | 3.7.0           | Publication-quality visualization         |
+| pandas       | 2.0.0           | Data I/O and manipulation                 |
+| seaborn      | 0.12.0          | Statistical visualization                 |
+| scikit-learn | 1.3.0           | Sensitivity analysis and regression       |
 
 ## 4. Usage and Workflow
 
@@ -127,7 +127,15 @@ Launch the interactive application:
 python scripts/gui.py
 ```
 
-### 5. Numerical Method Integration
+## 5. Numerical Methods
+
+This framework implements three core numerical methods:
+
+| Method                                           | Location                                                   | Purpose                                                                                                                                                                                                              |
+| ------------------------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **4th-Order Runge-Kutta (RK4) ODE Solver** | `src/models/battery_temperature_ode.py`        | Solves battery temperature ODE with fixed step size. Integrates thermal dynamics over charging cycle.                                                                                                               |
+| **Cubic Spline Interpolation**             | `src/utils/interpolater.py`, `heptane_interpolater.py` | Maps NIST thermophysical property data (density, heat capacity, viscosity, conductivity) for n-heptane over 280–320 K range. Also interpolates optimisation of the thermal response of the battery due to current. |
+| **Newton-Raphson Root Finding**            | `src/utils/root_finders.py`                              | Locates critical charging current where temperature of the battery = 40°C thermal limit. Also solves mass flow balance in `mass_flowrate.py`. Bisection fallback for robustness.                                 |
 
 ## 6. Author Information
 
