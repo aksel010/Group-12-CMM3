@@ -2,7 +2,7 @@
 
 Optimum Current:
   7.2129 A
-  Error: ±0.0000
+  Error: ±0.0015
 
 Mass Flowrate:
   Data collected
@@ -10,15 +10,15 @@ Mass Flowrate:
 Charging Performance Analysis:
 
   Critical C-Rate:
-    2.83 ± 3e-01
+    1.20 ± 1e-01
 
   Fastest Charge Time (Theoretical):
-    21.2 ± 2e+00 min
+    49.9 ± 5e+00 min
 
   Recommended C-Rate (Practical):
-    2.27 ± 2e-01
+    0.96 ± 1e-01
 
   Recommended Charge Time:
-    31.8 ± 3e+00 min
+    74.9 ± 8e+00 min
 
 

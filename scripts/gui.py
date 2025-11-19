@@ -268,11 +268,12 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "progress", "message": "Step 1/7: Optimum Current Convergence..."})
             self.result_queue.put({"type": "log", "message": "\n[1/7] Running Optimum Current convergence loop... (~60-180s)"})
             
-            # Clear and initialize current_store
-            current_store.clear()
+            # Clear and initialize current_store from the newly reloaded config
+            config.current_store.clear()
+            config.current_error.clear()
             result_oc = oc.run()
             current = result_oc['critical'][0]
-            current_store.append(current)
+            config.current_store.append(current)
             
             iteration = 1
             converged = False
@@ -280,19 +281,19 @@ class CMM3App(tk.Tk):
                 if cancel_event.is_set(): return
                 result_oc = oc.run()
                 new_current = result_oc['critical'][0]
-                current_store.append(new_current)
+                config.current_store.append(new_current)
                 iteration += 1
                 # Convergence check
-                if len(current_store) > 1 and abs(current_store[-1] - current_store[-2]) / current_store[-1] < threshold:
+                if len(config.current_store) > 1 and abs(config.current_store[-1] - config.current_store[-2]) / config.current_store[-1] < threshold:
                     converged = True
                 if iteration > 17.5:
                     self.result_queue.put({"type": "log", "message": "      Warning: Max iterations reached"})
                     break
             
             if cancel_event.is_set(): return
-            optimum_current = current_store[-1]
-            current_error_avg = np.mean(current_error) if current_error else 0.0
-            self.result_queue.put({"type": "log", "message": f"      ✓ Converged after {len(current_store)} iterations"})
+            optimum_current = config.current_store[-1]
+            current_error_avg = np.mean(config.current_error) if config.current_error else 0.0
+            self.result_queue.put({"type": "log", "message": f"      ✓ Converged after {len(config.current_store)} iterations"})
             self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A ± {current_error_avg:.4f}"})
             self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A\n  Error: ±{current_error_avg:.4f}\n\n"})
             
@@ -348,8 +349,8 @@ class CMM3App(tk.Tk):
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 7/7: ODE Solution (RK4 vs SciPy)..."})
             self.result_queue.put({"type": "log", "message": "\n[7/7] ODE Solution Comparison"})
-            time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(current_store[-1]), stepsize=step_size)
-            time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(current_store[-1]))
+            time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(config.current_store[-1]), stepsize=step_size)
+            time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(config.current_store[-1]))
             self.result_queue.put({"type": "log", "message": f"      ✓ ODE solved: {len(time_rk4)} RK4 points, {len(time_scipy)} SciPy points"})
             
             result["success"] = True
