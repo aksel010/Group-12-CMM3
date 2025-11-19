@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from src.config import *
 import src.models.battery_temperature_ode as battery_temperature_ode
 from src.models.battery_temperature_ode import get_tb, d_tb_dt, get_tb_scipy
-import src.models.rk4_error as rk4e
-import src.models.mass_flowrate as mf
-import src.models.optimum_current as oc
-from src.models.optimum_current import current_params
+import src.models.rk4_errors as rk4e
+import src.models.mass_flowrates as mf
+import src.models.optimum_currents as oc
+from src.models.optimum_currents import current_params
 from src.config import current_store, current_threshold
 import scripts.charging_time_analysis as rct
 import src.models.cooling_analysis as ca
