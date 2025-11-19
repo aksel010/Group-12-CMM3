@@ -1,7 +1,7 @@
 """
 Main execution script for Group-12-CMM3 consolidated analysis and visualization.
 
-Runs all module analyses and presents a unified results dashboard. PEP8-style docstrings and structured comments included.
+Runs all module analyses and presents a unified results dashboard.
 """
 import sys
 import os

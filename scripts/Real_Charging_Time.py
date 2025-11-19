@@ -1,5 +1,5 @@
 """
-Compute and report practical battery fast-charging rates and durations given an optimum current, with clear docstrings and comments.
+Compute and report practical battery fast-charging rates and durations given an optimum current.
 """
 import sys
 import os
