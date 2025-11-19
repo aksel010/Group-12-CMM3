@@ -17,7 +17,7 @@ from src.config import *
 # --------------------------------------------------------------------------- #
 # Load NIST thermophysical property data
 # --------------------------------------------------------------------------- #
-NIST_data_FILE = Path(__file__).parent.parent.parent / "data" / "raw" / "n heptane 2.txt"
+NIST_data_FILE = Path(__file__).parent.parent.parent / "data" / "raw" / "n_heptane_2.txt"
 
 def import_nist_txt(filepath: str | Path) -> pd.DataFrame:
     """
