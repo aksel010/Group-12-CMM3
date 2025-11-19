@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 
 # Complete params_initial tuple
 params_initial = (
-    m_cell,       # 0.045 kg
-    c_b,       # 900 J/(kg·K)
+    m_cell,       # kg
+    c_b,       # J/(kg·K)
     current_0,      # Initial current 15A (scalar, not list)
-    0.06,      # Fixed resistance of 0.08Ω (gives 18W heating)
-    a_s,       # 0.0025 m²
-    t_in,      # 293.15 K
-    1e-100       # Very low mass flow
+    0.06,      # Fixed resistance Ω
+    a_s,       # m²
+    t_in,      # K
+    mass_flow_initial       # kg/s - nominal mass flow rate
 )
 
 def d_tb_dt(tb, t, params):
