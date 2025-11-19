@@ -13,3 +13,4 @@ def clearvars():
 # Automatically clear globals when this script runs as main module
 if __name__ == "__main__":
     clearvars()
+
