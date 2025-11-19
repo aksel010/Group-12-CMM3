@@ -94,11 +94,13 @@ python -m venv venv
 # Activate virtual environment
 # Windows:
 virtualenv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install the project in editable mode
+# This makes the 'src' package available to all scripts
+pip install -e .
 ```
 
 ### Dependencies

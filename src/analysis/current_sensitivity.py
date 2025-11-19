@@ -11,6 +11,10 @@ Requires:
     - calculate_steady_state_mass_flow from Mass_flowrate.py
     - parameters from config.py
 """
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -23,7 +27,7 @@ mass_flow_values = []
 
 for current in current_values:
     # Update last value of current_store if required
-    current_store[-1] = current
+    current_store.append(current)
     # Electrical heat generation (W)
     generated_heat = current ** 2 * r_b
     # Compute steady-state mass flow rate
