@@ -11,9 +11,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src.config import *
 import src.models.ODE as ODE
+from src.models.ODE import get_tb, d_tb_dt, get_tb_scipy
 import src.models.RK4_Error as rk4e
 import src.models.Mass_flowrate as mf
 import src.models.Optimum_Current as oc
+from src.models.Optimum_Current import current_params
+from src.config import current_store, current_threshold
 import scripts.Real_Charging_Time as rct
 import src.models.cooling_analysis as ca
 import src.utils.heptane_itpl as hi
@@ -60,10 +63,10 @@ if __name__ == "__main__":
     fig.suptitle('Group 12 - CMM3 Complete Analysis', fontsize=20, fontweight='bold')
     # Plot 1: ODE (RK4 vs SciPy)
     ax1 = plt.subplot(1, 3, 1)
-    t_rk, t_rk = ode_data['rk4']
-    t_scipy, t_scipy = ode_data['scipy']
-    ax1.plot(t_rk, t_rk, 'b--', label=f'RK4 (h={H}s)', linewidth=1.5)
-    ax1.plot(t_scipy, t_scipy, 'r-', linewidth=3, alpha=0.6, label='SciPy LSODA')
+    time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(current_store[-1]), stepsize = H)
+    time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(current_store[-1]))
+    ax1.plot(time_rk4, temp_rk4, 'b--', label=f'RK4 (h={H}s)', linewidth=1.5)
+    ax1.plot(time_scipy, temp_scipy, 'r-', linewidth=3, alpha=0.6, label='SciPy LSODA')
     ax1.set_xlabel('Time (s)', fontsize=10)
     ax1.set_ylabel('Battery Temperature $T_b$ (K)', fontsize=10)
     ax1.set_title('ODE Solution Validation', fontsize=12, fontweight='bold')
