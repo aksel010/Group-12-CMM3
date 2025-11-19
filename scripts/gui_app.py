@@ -54,7 +54,7 @@ class CMM3App(tk.Tk):
         Creates all frames, input widgets, buttons, output display, and diagnostics areas.
         """
         # Title
-        title = ttk.Label(self, text="Group 12 CMM3 — EV Battery Fast-Charge Optimization", font=("Arial", 22, "bold"))
+        title = ttk.Label(self, text="Group 12 CMM3 — PHEV Battery Fast-Charge Optimization", font=("Arial", 22, "bold"))
         title.grid(row=0, column=0, columnspan=2, pady=15, sticky="ew")
         # Top left: Customizable input section
         self.input_frame = ttk.LabelFrame(self, text="Input Parameters", padding=(15,15))
