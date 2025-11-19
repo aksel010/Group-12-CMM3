@@ -13,7 +13,7 @@ M_perturb_range = np.linspace(0.9 * M_flow_nominal, 1.1 * M_flow_nominal, 10)
 results = []
 stepsize = 0.2
 
-params_nominal = (m_cell, c_b, current_0, r_b, a_s, t_in, M_flow_nominal)
+params_nominal = (m_cell, c_b, current_store[-1], r_b, a_s, t_in, M_flow_nominal)
 _, T_nominal_arr = get_tb(d_tb_dt, params_nominal, stepsize)
 T_final_nominal = T_nominal_arr[-1]
 
@@ -26,7 +26,7 @@ results.append({
 
 for M_flow in M_perturb_range:
 
-    params_perturbed = (m_cell, c_b, current_0, r_b, a_s, t_in, M_flow)
+    params_perturbed = (m_cell, c_b, current_store[-1], r_b, a_s, t_in, M_flow)
     _, T_perturbed_arr = get_tb(d_tb_dt, params_perturbed, stepsize)
     T_final_perturbed = T_perturbed_arr[-1]
 
@@ -43,7 +43,7 @@ for M_flow in M_perturb_range:
 df_results = pd.DataFrame(results)
 
 df_results['S_dimless'] = (df_results['dT'] / T_final_nominal) / (df_results['dM'] / M_flow_nominal)
-
+print(params_perturbed)
 plt.figure(figsize=(10, 5))
 plt.plot(df_results['M_flow'] * 1000, df_results['T_final'], 'bo-', label='$T_{b,final}$ vs $\dot{M}$')
 plt.axhline(y=T_final_nominal, color='r', linestyle='--', label='$T_{b,final, \text{nominal}}$')
