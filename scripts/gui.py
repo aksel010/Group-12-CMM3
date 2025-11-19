@@ -294,8 +294,8 @@ class CMM3App(tk.Tk):
             optimum_current = config.current_store[-1]
             current_error_avg = np.mean(config.current_error) if config.current_error else 0.0
             self.result_queue.put({"type": "log", "message": f"      ✓ Converged after {len(config.current_store)} iterations"})
-            self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A ± {current_error_avg:.4f}"})
-            self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A\n  Error: ±{current_error_avg:.4f}\n\n"})
+            self.result_queue.put({"type": "log", "message": f"      Critical Current: {optimum_current:.4f} ± {current_error_avg:.4f}A"})
+            self.result_queue.put({"type": "result", "message": f"Critical Current:\n  {optimum_current:.4f} ±{current_error_avg:.4f} A\n\n"})
             
             # Step 2: Run all analyses
             if cancel_event.is_set(): return
@@ -309,7 +309,7 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": "\n[3/7] Mass Flowrate Solver"})
             mf_data = mf.run()
             self.result_queue.put({"type": "log", "message": "      ✓ Mass flowrate computed"})
-            self.result_queue.put({"type": "result", "message": f"Mass Flowrate:\n  Data collected\n\n"})
+            self.result_queue.put({"type": "result", "message": f"Mass Flowrate: \n\n"})
             
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 4/7: Optimum Current Analysis..."})
@@ -324,18 +324,18 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": "      ✓ Real charging time computed"})
             if rct_results:
                 self.result_queue.put({"type": "result", "message": f"Charging Performance Analysis:\n\n"})
-                cr_val = rct_results.get('critical_C_rate', 0)
-                cr_err = rct_results.get('critical_C_rate_err', 0)
-                self.result_queue.put({"type": "result", "message": f"  Critical C-Rate:\n    {cr_val:.2f} ± {cr_err:.0e}\n\n"})
-                ft_val = rct_results.get('fastest_charge_min', 0)
-                ft_err = rct_results.get('fastest_charge_min_err', 0)
-                self.result_queue.put({"type": "result", "message": f"  Fastest Charge Time (Theoretical):\n    {ft_val:.1f} ± {ft_err:.0e} min\n\n"})
-                rc_val = rct_results.get('recommended_C_rate', 0)
-                rc_err = rct_results.get('recommended_C_rate_err', 0)
-                self.result_queue.put({"type": "result", "message": f"  Recommended C-Rate (Practical):\n    {rc_val:.2f} ± {rc_err:.0e}\n\n"})
-                rct_val = rct_results.get('recommended_charge_min', 0)
-                rct_err = rct_results.get('recommended_charge_min_err', 0)
-                self.result_queue.put({"type": "result", "message": f"  Recommended Charge Time:\n    {rct_val:.1f} ± {rct_err:.0e} min\n\n"})
+                cr_val = rct_results.get('critical_C_rate', 'N/A')
+                cr_err = rct_results.get('critical_C_rate_err', 'N/A')
+                self.result_queue.put({"type": "result", "message": f"  Critical C-Rate:\n    {cr_val:.2f} ± {cr_err:.2f} C\n\n"})
+                ft_val = rct_results.get('fastest_charge_min', 'N/A')
+                ft_err = rct_results.get('fastest_charge_min_err', 'N/A')
+                self.result_queue.put({"type": "result", "message": f"  Fastest Charge Time (Theoretical):\n    {ft_val:.1f} ± {ft_err:.1f} min\n\n"})
+                rc_val = rct_results.get('recommended_C_rate', 'N/A')
+                rc_err = rct_results.get('recommended_C_rate_err', 'N/A')
+                self.result_queue.put({"type": "result", "message": f"  Recommended C-Rate (Practical):\n    {rc_val:.2f} ± {rc_err:.2f} C\n\n"})
+                rct_val = rct_results.get('recommended_charge_min', 'N/A')
+                rct_err = rct_results.get('recommended_charge_min_err', 'N/A')
+                self.result_queue.put({"type": "result", "message": f"  Recommended Charge Time:\n    {rct_val:.1f} ± {rct_err:.1f} min\n\n"})
             else:
                 self.result_queue.put({"type": "log", "message": "      Warning: Could not retrieve charging time results."})
             
@@ -520,7 +520,6 @@ class CMM3App(tk.Tk):
                 self.log("[COMPLETE] All computations and visualizations finished successfully!")
                 self.log("="*100 + "\n")
                 self.results_text.insert("end", "Status: COMPLETE\n\n")
-                self.results_text.insert("end", f"Final Optimum Current: {optimum_current:.4f} A")
             
             except Exception as e:
                 self.log(f"\n[ERROR] Failed to generate plots: {str(e)}")

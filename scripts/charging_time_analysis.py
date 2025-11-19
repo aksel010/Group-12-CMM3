@@ -57,7 +57,7 @@ def monte_carlo_error_propagation(critical_current, delta_I, n_simulations=10000
     
     print("Monte Carlo Results:")
     for key, (mean, std) in results.items():
-        print(f"{key:20} = {mean:.3f} ± {std:.3f}")
+        print(f"{key:20} = {mean:.4f} ± {std:.4f}")
     
     return results
 
