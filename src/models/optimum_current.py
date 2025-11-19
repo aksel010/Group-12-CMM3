@@ -106,9 +106,7 @@ def calculate_spline_error(current_array, delta_temp_array):
     # Maximum spacing between data points
     max_spacing = np.max(np.diff(current_array))
     
-    # Simple error estimate based on spacing
-    # For cubic splines, error typically scales with h^4 where h is spacing
-    error_estimate = 0.01 * (max_spacing ** 2)  # Empirical scaling
+    error_estimate = 0.01 * (max_spacing ** 4)  # Empirical scaling
     
     return error_estimate
 
