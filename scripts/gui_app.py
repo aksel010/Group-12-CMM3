@@ -22,6 +22,7 @@ try:
     import scripts.Real_Charging_Time as rct
     import src.models.cooling_analysis as ca
     import src.utils.heptane_itpl as hi
+    import src.config as config
     from src.config import current_store, current_threshold, H
 except ImportError as e:
     print(f"Warning: Could not import module: {e}")
@@ -37,7 +38,7 @@ class CMM3App(tk.Tk):
         """
         super().__init__()
         self.title("Group-12-CMM3 Fast-Charge Academic Analysis")
-        self.state('zoomed')
+        self.state('zoomed')  # Fullscreen on launch
         self.configure(bg="white")
         self.create_widgets()
         self.grid_rowconfigure(1, weight=3)
@@ -58,21 +59,45 @@ class CMM3App(tk.Tk):
         # Top left: Customizable input section
         self.input_frame = ttk.LabelFrame(self, text="Input Parameters", padding=(15,15))
         self.input_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
+        
+        # Row 0: Convergence Threshold
         ttk.Label(self.input_frame, text="Convergence Threshold:", font=("Arial", 10, "bold")).grid(row=0, column=0, sticky="w", pady=5)
-        self.threshold_entry = ttk.Entry(self.input_frame, width=20)
+        self.threshold_entry = ttk.Entry(self.input_frame, width=15)
         self.threshold_entry.insert(0, "1e-6")
         self.threshold_entry.grid(row=0, column=1, sticky="ew", pady=5, padx=5)
-        ttk.Label(self.input_frame, text="Initial Current (A):", font=("Arial", 10)).grid(row=1, column=0, sticky="w", pady=5)
-        self.current_entry = ttk.Entry(self.input_frame, width=20)
-        self.current_entry.insert(0, "15")
+        ttk.Label(self.input_frame, text="[1e-8 to 1e-4]", font=("Arial", 8, "italic"), foreground="gray").grid(row=0, column=2, sticky="w", padx=5)
+        
+        # Row 1: Initial Current
+        ttk.Label(self.input_frame, text="Initial Current (A):", font=("Arial", 10, "bold")).grid(row=1, column=0, sticky="w", pady=5)
+        self.current_entry = ttk.Entry(self.input_frame, width=15)
+        self.current_entry.insert(0, "17")
         self.current_entry.grid(row=1, column=1, sticky="ew", pady=5, padx=5)
-        ttk.Label(self.input_frame, text="Step Size (s):", font=("Arial", 10)).grid(row=2, column=0, sticky="w", pady=5)
-        self.step_entry = ttk.Entry(self.input_frame, width=20)
+        ttk.Label(self.input_frame, text="[5 to 30 A]", font=("Arial", 8, "italic"), foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
+        
+        # Row 2: RK4 Step Size
+        ttk.Label(self.input_frame, text="RK4 Step Size (s):", font=("Arial", 10, "bold")).grid(row=2, column=0, sticky="w", pady=5)
+        self.step_entry = ttk.Entry(self.input_frame, width=15)
         self.step_entry.insert(0, "30")
         self.step_entry.grid(row=2, column=1, sticky="ew", pady=5, padx=5)
-        ttk.Separator(self.input_frame, orient="horizontal").grid(row=3, column=0, columnspan=2, sticky="ew", pady=10)
+        ttk.Label(self.input_frame, text="[10 to 60 s]", font=("Arial", 8, "italic"), foreground="gray").grid(row=2, column=2, sticky="w", padx=5)
+        
+        # Row 3: Max Battery Temperature
+        ttk.Label(self.input_frame, text="Max Battery Temp (°C):", font=("Arial", 10, "bold")).grid(row=3, column=0, sticky="w", pady=5)
+        self.t_b_max_entry = ttk.Entry(self.input_frame, width=15)
+        self.t_b_max_entry.insert(0, "40")
+        self.t_b_max_entry.grid(row=3, column=1, sticky="ew", pady=5, padx=5)
+        ttk.Label(self.input_frame, text="[35 to 50 °C]", font=("Arial", 8, "italic"), foreground="gray").grid(row=3, column=2, sticky="w", padx=5)
+        
+        # Row 4: Coolant Inlet Temperature
+        ttk.Label(self.input_frame, text="Coolant Inlet Temp (°C):", font=("Arial", 10, "bold")).grid(row=4, column=0, sticky="w", pady=5)
+        self.t_in_entry = ttk.Entry(self.input_frame, width=15)
+        self.t_in_entry.insert(0, "15")
+        self.t_in_entry.grid(row=4, column=1, sticky="ew", pady=5, padx=5)
+        ttk.Label(self.input_frame, text="[10 to 25 °C]", font=("Arial", 8, "italic"), foreground="gray").grid(row=4, column=2, sticky="w", padx=5)
+        
+        ttk.Separator(self.input_frame, orient="horizontal").grid(row=5, column=0, columnspan=3, sticky="ew", pady=10)
         buttons_frame = ttk.Frame(self.input_frame)
-        buttons_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=10)
+        buttons_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=10)
         buttons_frame.grid_columnconfigure(0, weight=1)
         buttons_frame.grid_columnconfigure(1, weight=1)
         self.run_btn = ttk.Button(buttons_frame, text="Run Complete Analysis", command=self.run_analysis)
@@ -80,13 +105,13 @@ class CMM3App(tk.Tk):
         self.cancel_btn = ttk.Button(buttons_frame, text="Cancel", command=self.cancel_analysis, state="disabled")
         self.cancel_btn.grid(row=0, column=1, sticky="ew", padx=(5, 0))
         self.progress_frame = ttk.Frame(self.input_frame)
-        self.progress_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=5)
+        self.progress_frame.grid(row=7, column=0, columnspan=3, sticky="ew", pady=5)
         self.progress_bar = ttk.Progressbar(self.progress_frame, mode='indeterminate', length=250)
         self.progress_label = ttk.Label(self.progress_frame, text="", font=("Arial", 9))
-        ttk.Label(self.input_frame, text="Key Results:", font=("Arial", 11, "bold")).grid(row=6, column=0, columnspan=2, sticky="w", pady=(15,5))
+        ttk.Label(self.input_frame, text="Key Results:", font=("Arial", 11, "bold")).grid(row=8, column=0, columnspan=3, sticky="w", pady=(15,5))
         self.results_text = tk.Text(self.input_frame, height=12, width=30, wrap="word", font=("Courier", 9))
-        self.results_text.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=5)
-        self.input_frame.grid_rowconfigure(7, weight=1)
+        self.results_text.grid(row=9, column=0, columnspan=3, sticky="nsew", pady=5)
+        self.input_frame.grid_rowconfigure(9, weight=1)
         self.input_frame.grid_columnconfigure(1, weight=1)
         self.output_frame = ttk.LabelFrame(self, text="Analysis Outputs & Graphs", padding=(15,15))
         self.output_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=5)
@@ -142,9 +167,26 @@ class CMM3App(tk.Tk):
             return
         try:
             threshold = float(self.threshold_entry.get())
-        except ValueError:
-            messagebox.showerror("Input Error", "Threshold must be a float (e.g., 1e-6)")
+            initial_current = float(self.current_entry.get())
+            step_size = float(self.step_entry.get())
+            t_b_max = float(self.t_b_max_entry.get()) + 273.13  # Convert to Kelvin
+            t_in = float(self.t_in_entry.get()) + 273.13  # Convert to Kelvin
+        except ValueError as e:
+            messagebox.showerror("Input Error", f"Invalid input: {str(e)}. Please check all fields are numbers.")
             return
+        
+        # Validate ranges
+        if not (1e-8 <= threshold <= 1e-4):
+            messagebox.showwarning("Range Warning", "Convergence threshold recommended: [1e-8 to 1e-4]")
+        if not (5 <= initial_current <= 30):
+            messagebox.showwarning("Range Warning", "Initial current recommended: [5 to 30 A]")
+        if not (10 <= step_size <= 60):
+            messagebox.showwarning("Range Warning", "RK4 step size recommended: [10 to 60 s]")
+        if not (35 <= (t_b_max - 273.13) <= 50):
+            messagebox.showwarning("Range Warning", "Max battery temp recommended: [35 to 50 °C]")
+        if not (10 <= (t_in - 273.13) <= 25):
+            messagebox.showwarning("Range Warning", "Coolant inlet temp recommended: [10 to 25 °C]")
+        
         self.running = True
         self.cancel_event.clear()
         self.run_btn.config(state="disabled", text="Running...")
@@ -154,17 +196,24 @@ class CMM3App(tk.Tk):
         self.progress_label.pack(side="left", padx=5)
         self.progress_bar.start(10)
         self.update_progress("Initializing...")
-        analysis_thread = threading.Thread(target=self.perform_analysis, args=(threshold, self.cancel_event), daemon=True)
+        analysis_thread = threading.Thread(target=self.perform_analysis, args=(threshold, initial_current, step_size, t_b_max, t_in, self.cancel_event), daemon=True)
         analysis_thread.start()
         self.check_results()
 
-    def perform_analysis(self, threshold, cancel_event):
+    def perform_analysis(self, threshold, initial_current, step_size, t_b_max, t_in, cancel_event):
         """
         Main analysis routine following exact workflow from main.py.
         Iteratively solves for optimum current, then runs all module analyses.
+        Uses GUI inputs to override config values dynamically.
         """
         result = {"success": False, "data": {}, "error": None, "status": "running"}
         try:
+            # Update config with GUI inputs
+            config.current_0 = initial_current
+            config.H = step_size
+            config.t_b_max = t_b_max
+            config.t_in = t_in
+            
             if cancel_event.is_set(): return
             required_modules = {'oc', 'ODE', 'mf', 'rk4e', 'rct', 'hi'}
             for mod_name in required_modules:
@@ -173,6 +222,7 @@ class CMM3App(tk.Tk):
             
             self.result_queue.put({"type": "log", "message": "\n" + "="*100})
             self.result_queue.put({"type": "log", "message": "[STARTING] Group 12 - CMM3 Consolidated Analysis"})
+            self.result_queue.put({"type": "log", "message": f"Parameters: T_b_max={t_b_max-273.13:.1f}°C, T_in={t_in-273.13:.1f}°C, I_0={initial_current:.1f}A, H={step_size:.0f}s"})
             self.result_queue.put({"type": "log", "message": "="*100})
             
             # Step 1: Compute optimum current (convergence loop from main.py)
@@ -243,7 +293,7 @@ class CMM3App(tk.Tk):
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 7/7: ODE Solution (RK4 vs SciPy)..."})
             self.result_queue.put({"type": "log", "message": "\n[7/7] ODE Solution Comparison"})
-            time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(current_store[-1]), stepsize=H)
+            time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(current_store[-1]), stepsize=step_size)
             time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(current_store[-1]))
             self.result_queue.put({"type": "log", "message": f"      ✓ ODE solved: {len(time_rk4)} RK4 points, {len(time_scipy)} SciPy points"})
             
@@ -256,7 +306,10 @@ class CMM3App(tk.Tk):
                 "temp_scipy": temp_scipy,
                 "mf_data": mf_data,
                 "oc_data": oc_data,
-                "optimum_current": optimum_current
+                "optimum_current": optimum_current,
+                "step_size": step_size,
+                "t_b_max": t_b_max,
+                "t_in": t_in
             }
             self.result_queue.put({"type": "progress", "message": "Generating plots..."})
             self.result_queue.put({"type": "log", "message": "\n[PLOTTING] Generating visualization..."})
@@ -333,7 +386,7 @@ class CMM3App(tk.Tk):
                 
                 # Plot 1: ODE Solution Validation (RK4 vs SciPy)
                 ax1 = self.fig.add_subplot(131)
-                ax1.plot(time_rk4, temp_rk4, 'b--', label=f'RK4 (h={H}s)', linewidth=1.5)
+                ax1.plot(time_rk4, temp_rk4, 'b--', label=f'RK4 (h={result["data"]["step_size"]:.0f}s)', linewidth=1.5)
                 ax1.plot(time_scipy, temp_scipy, 'r-', linewidth=3, alpha=0.6, label='SciPy LSODA')
                 ax1.set_xlabel('Time (s)', fontsize=10)
                 ax1.set_ylabel('Battery Temperature $T_b$ (K)', fontsize=10)
