@@ -1,24 +1,23 @@
 ==== Group 12 - CMM3 GUI Analysis Summary ====
 
-Optimum Current:
-  7.2129 A
-  Error: ±0.0015
+Critical Current:
+  7.2129 ±0.0015 A
 
 Mass Flowrate:
-  Data collected
+  0.00123187 kg/s
 
 Charging Performance Analysis:
 
   Critical C-Rate:
-    1.20 ± 1e-01
+    1.20 ± 0.13 C
 
   Fastest Charge Time (Theoretical):
-    49.9 ± 5e+00 min
+    49.9 ± 5.0 min
 
   Recommended C-Rate (Practical):
-    0.96 ± 1e-01
+    0.96 ± 0.10 C
 
   Recommended Charge Time:
-    74.9 ± 8e+00 min
+    74.9 ± 7.5 min
 
 
