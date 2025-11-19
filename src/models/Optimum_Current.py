@@ -176,11 +176,6 @@ def run():
         current_values = np.linspace(current_min, current_max, 100)
         profile_vals = [current_profile(current_array, delta_temp_array, current) for current in current_values]
         
-        plt.plot(current_values, profile_vals)
-        plt.axhline(0, color='gray', linestyle='--')
-        plt.xlabel('Current (I)')
-        plt.ylabel('current_profile')
-        plt.show()
         
         critical_current_bisection = bisection(
             f=lambda current: current_profile(current_array, delta_temp_array, current),
