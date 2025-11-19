@@ -97,10 +97,10 @@ class CMM3App(tk.Tk):
         
         ttk.Separator(self.input_frame, orient="horizontal").grid(row=5, column=0, columnspan=3, sticky="ew", pady=10)
         buttons_frame = ttk.Frame(self.input_frame)
-        buttons_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0)) # Adjusted pady for better spacing
+        buttons_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
         buttons_frame.grid_columnconfigure(0, weight=1)
         buttons_frame.grid_columnconfigure(1, weight=1)
-        buttons_frame.grid_columnconfigure(2, weight=1) # New column for reset button
+        buttons_frame.grid_columnconfigure(2, weight=1)
         self.run_btn = ttk.Button(buttons_frame, text="Run Complete Analysis", command=self.run_analysis)
         self.run_btn.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         self.cancel_btn = ttk.Button(buttons_frame, text="Cancel", command=self.cancel_analysis, state="disabled")
@@ -229,12 +229,12 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": f"Parameters: T_b_max={t_b_max-273.13:.1f}°C, T_in={t_in-273.13:.1f}°C, I_0={initial_current:.1f}A, H={step_size:.0f}s"})
             self.result_queue.put({"type": "log", "message": "="*100})
             
-            # Step 1: Compute optimum current (convergence loop from main.py)
+            # Step 1: Compute optimum current
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 1/7: Optimum Current Convergence..."})
             self.result_queue.put({"type": "log", "message": "\n[1/7] Running Optimum Current convergence loop... (~60-180s)"})
             
-            # Clear and initialize current_store (from main.py line 40)
+            # Clear and initialize current_store
             current_store.clear()
             result_oc = oc.run()
             current = result_oc['critical'][0]
@@ -248,10 +248,10 @@ class CMM3App(tk.Tk):
                 new_current = result_oc['critical'][0]
                 current_store.append(new_current)
                 iteration += 1
-                # Convergence check from main.py line 44
-                if len(current_store) > 1 and abs(current_store[-1] - current_store[-2]) < threshold:
+                # Convergence check
+                if len(current_store) > 1 and abs(current_store[-1] - current_store[-2]) / current_store[-1] < threshold:
                     converged = True
-                if iteration > 100:
+                if iteration > 20:
                     self.result_queue.put({"type": "log", "message": "      Warning: Max iterations reached"})
                     break
             
@@ -262,7 +262,7 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A ± {current_error_mean:.4f}"})
             self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A ± {current_error_mean:.4f} \n\n"})
             
-            # Step 2: Run all analyses (from main.py lines 47-58)
+            # Step 2: Run all analyses
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 2/7: RK4 Error Analysis..."})
             self.result_queue.put({"type": "log", "message": "\n[2/7] RK4 Error Analysis"})
@@ -299,7 +299,7 @@ class CMM3App(tk.Tk):
             hi_data = hi.run()
             self.result_queue.put({"type": "log", "message": "      ✓ Heptane properties analyzed"})
             
-            # Step 3: Generate ODE solutions (from main.py lines 60-62)
+            # Step 3: Generate ODE solutions
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 7/7: ODE Solution (RK4 vs SciPy)..."})
             self.result_queue.put({"type": "log", "message": "\n[7/7] ODE Solution Comparison"})
@@ -375,7 +375,7 @@ class CMM3App(tk.Tk):
         self.fig.clf()
         self.fig.text(0.5, 0.5, 'Click "Run Complete Analysis" to begin', ha='center', va='center', fontsize=16, color='gray')
         self.canvas.draw()
-        # Clear global state variables to ensure a fresh start for the next analysis
+        # Clear global state variables for the next analysis
         config.current_store.clear()
         config.current_error.clear()
         self.log("[INFO] Application reset to initial state.")
@@ -404,7 +404,7 @@ class CMM3App(tk.Tk):
             self.log("="*100 + "\n")
         elif status == "success":
             try:
-                # Extract data from result (from main.py structure)
+                # Extract data from result 
                 time_rk4 = result["data"]["time_rk4"]
                 temp_rk4 = result["data"]["temp_rk4"]
                 time_scipy = result["data"]["time_scipy"]
