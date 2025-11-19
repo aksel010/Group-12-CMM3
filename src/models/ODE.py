@@ -48,7 +48,7 @@ def d_tb_dt(tb, t, params):
     cooling = (h * a_s * (tb - t_c_in)) / cooling_denom
 
     # Rate of change of temperature
-    d_tb_dt = (heating - cooling) / (mb * cp_b)
+    d_tb_dt = (heating - cooling) / (m_b * cp_b)
 
     return d_tb_dt
 

@@ -12,7 +12,7 @@ v_cell = 1.2  # [V] per cell
 capacity_cell = 6  # [Ah] per cell
 energy_cell = 7.2  # [Wh] per cell
 dc_ir = 2.5e-3  # [Ohm] per cell
-m_cell = 0.158  # [kg] test cell mass
+m_cell = 0.0158  # [kg] test cell mass
 
 # ========== Battery Pack Properties ========== #
 m_b = m_cell * n_cell  # [kg] total mass

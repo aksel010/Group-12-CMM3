@@ -30,11 +30,10 @@ def compute_optimum_current(threshold=current_threshold):
     result = oc.run()
     current = result['critical'][0]
     current_store.append(current)
-    while True:
+    while abs(current_store[-1]-current_store[-2])/current_store[-1] > threshold or len(current_store) < 2:
         result = oc.run()
         new_current = result['critical'][0]
         current_store.append(new_current)
-        break
     return current_store
 
 if __name__ == "__main__":
