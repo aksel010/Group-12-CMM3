@@ -2,7 +2,7 @@ Metadata-Version: 2.4
 Name: btms_simulation
 Version: 1.0.0
 Summary: Battery Thermal Management System simulation
-Author: Your name
+Author: Group 12
 Requires-Python: >=3.8
 Requires-Dist: numpy>=1.21.0
 Requires-Dist: scipy>=1.7.0
