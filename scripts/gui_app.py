@@ -97,13 +97,17 @@ class CMM3App(tk.Tk):
         
         ttk.Separator(self.input_frame, orient="horizontal").grid(row=5, column=0, columnspan=3, sticky="ew", pady=10)
         buttons_frame = ttk.Frame(self.input_frame)
-        buttons_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=10)
+        buttons_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0)) # Adjusted pady for better spacing
         buttons_frame.grid_columnconfigure(0, weight=1)
         buttons_frame.grid_columnconfigure(1, weight=1)
+        buttons_frame.grid_columnconfigure(2, weight=1) # New column for reset button
         self.run_btn = ttk.Button(buttons_frame, text="Run Complete Analysis", command=self.run_analysis)
         self.run_btn.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         self.cancel_btn = ttk.Button(buttons_frame, text="Cancel", command=self.cancel_analysis, state="disabled")
         self.cancel_btn.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+        self.reset_btn = ttk.Button(buttons_frame, text="Reset", command=self.reset_app)
+        self.reset_btn.grid(row=0, column=2, sticky="ew", padx=(5, 0))
+
         self.progress_frame = ttk.Frame(self.input_frame)
         self.progress_frame.grid(row=7, column=0, columnspan=3, sticky="ew", pady=5)
         self.progress_bar = ttk.Progressbar(self.progress_frame, mode='indeterminate', length=250)
@@ -228,7 +232,7 @@ class CMM3App(tk.Tk):
             # Step 1: Compute optimum current (convergence loop from main.py)
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 1/7: Optimum Current Convergence..."})
-            self.result_queue.put({"type": "log", "message": "\n[1/7] Running Optimum Current convergence loop..."})
+            self.result_queue.put({"type": "log", "message": "\n[1/7] Running Optimum Current convergence loop... (~60-180s)"})
             
             # Clear and initialize current_store (from main.py line 40)
             current_store.clear()
@@ -281,8 +285,13 @@ class CMM3App(tk.Tk):
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 5/7: Real Charging Time..."})
             self.result_queue.put({"type": "log", "message": "\n[5/7] Real Charging Time"})
-            rct.run()
+            rct_results = rct.run()
             self.result_queue.put({"type": "log", "message": "      ✓ Real charging time computed"})
+            if rct_results:
+                self.result_queue.put({"type": "result", "message": f"Recommended C-Rate:\n  {rct_results['recommended_C_rate']:.2f}C\n\n"})
+                self.result_queue.put({"type": "result", "message": f"Recommended Charge Time:\n  {rct_results['recommended_charge_min']:.1f} min\n\n"})
+            else:
+                self.result_queue.put({"type": "log", "message": "      Warning: Could not retrieve charging time results."})
             
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 6/7: Heptane Fluid Properties..."})
@@ -347,6 +356,29 @@ class CMM3App(tk.Tk):
             pass
         if self.running:
             self.after(100, self.check_results)
+
+    def reset_app(self):
+        """
+        Resets the GUI to its initial state, clearing results, logs, and plots.
+        """
+        if self.running:
+            messagebox.showwarning("Analysis Running", "Please cancel the current analysis before resetting.")
+            return
+        self.results_text.delete("1.0", "end")
+        self.diagnostics_text.delete("1.0", "end")
+        self.diagnostics_text.insert("end", "="*100 + "\n")
+        self.diagnostics_text.insert("end", "Group 12 - CMM3 EV Battery Fast-Charge Optimization System\n")
+        self.diagnostics_text.insert("end", "="*100 + "\n")
+        self.diagnostics_text.insert("end", "Status: Ready. Awaiting analysis run...\n\n")
+        self.run_btn.config(state="normal", text="Run Complete Analysis")
+        self.cancel_btn.config(state="disabled")
+        self.fig.clf()
+        self.fig.text(0.5, 0.5, 'Click "Run Complete Analysis" to begin', ha='center', va='center', fontsize=16, color='gray')
+        self.canvas.draw()
+        # Clear global state variables to ensure a fresh start for the next analysis
+        config.current_store.clear()
+        config.current_error.clear()
+        self.log("[INFO] Application reset to initial state.")
 
     def handle_completion(self, result):
         """
