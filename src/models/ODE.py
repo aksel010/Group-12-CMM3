@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 params_initial = (
     m_cell,       # 0.045 kg
     c_b,       # 900 J/(kg·K)
-    15,      # Increased current to 15A
+    current_store,      # Increased current to 15A
     0.06,      # Fixed resistance of 0.08Ω (gives 18W heating)
     a_s,       # 0.0025 m²
     t_in,      # 293.15 K
