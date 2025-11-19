@@ -309,7 +309,10 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": "\n[3/7] Mass Flowrate Solver"})
             mf_data = mf.run()
             self.result_queue.put({"type": "log", "message": "      ✓ Mass flowrate computed"})
-            self.result_queue.put({"type": "result", "message": f"Mass Flowrate: \n\n"})
+            # Get the steady-state mass flow value
+            from src.models.mass_flowrate import get_steady_state_values
+            mass_flow_ss, t_c_avg_k, h_ss = get_steady_state_values()
+            self.result_queue.put({"type": "result", "message": f"Mass Flowrate:\n  {mass_flow_ss:.8f} kg/s\n\n"})
             
             if cancel_event.is_set(): return
             self.result_queue.put({"type": "progress", "message": "Step 4/7: Optimum Current Analysis..."})
