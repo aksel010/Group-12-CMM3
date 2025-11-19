@@ -9,13 +9,7 @@ This repository contains a comprehensive computational framework for the simulat
 
 ## 1. Introduction
 
-### 1.1 Background and Motivation
-
-Rapid electrification of transportation systems requires advanced thermal management solutions for high-capacity battery packs. Contemporary lithium-ion battery technology exhibits strong temperature sensitivity in both charging efficiency and cycle life, with optimal operating windows typically constrained to 20°C–40°C. Conventional liquid cooling systems, based on water-glycol mixtures, present several limitations: corrosion potential, freeze-thaw concerns in diverse climates, and parasitic energy consumption from dedicated cooling pumps.
-
-The proposed n-heptane BTMS addresses these limitations by leveraging the thermal properties of hydrocarbon fuels already present in PHEV fuel tanks. This approach enables thermal integration at minimal system complexity and power overhead.
-
-### 1.2 Research Objectives
+### 1.1 Research Objectives
 
 This framework addresses the following research questions:
 
@@ -24,7 +18,7 @@ This framework addresses the following research questions:
 3. How do key system parameters (inlet coolant temperature, channel geometry, RK4 step size) affect optimal charging protocols?
 4. What practical charging rates (C-rates) can real-world charging infrastructure support?
 
-## 2. Project Structure and Architecture
+## 1. Project Structure and Architecture
 
 ```
 Group-12-CMM3/
