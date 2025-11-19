@@ -51,7 +51,6 @@ if __name__ == "__main__":
     print(f'\n✓ Model converged after {len(current_store_result)} iterations')
     print(f'Optimum Current: {current_store_result[-1]:.4f} A\n')
     print("==== Group 12 - CMM3 Consolidated Results ====\n")
-    ode_data = ODE.run()
     print("\n--- RK4 Error Analysis ---")
     rk4e.run()
     print("\n--- Mass Flowrate Solver ---")
