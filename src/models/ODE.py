@@ -4,6 +4,7 @@ from src.models.Mass_flowrate import get_steady_state_values
 from src.config import *
 import numpy as np
 from scipy.integrate import solve_ivp
+from src.models.Optimum_Current import current_params
 import matplotlib.pyplot as plt
 
 
@@ -172,8 +173,8 @@ def run():
             - time_array (np.ndarray): Time points
             - temp_array (np.ndarray): Battery temperatures
     """
-    time_rk4, temp_rk4 = get_tb(d_tb_dt, params_initial, stepsize = H)
-    time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, params_initial)
+    time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(current_store), stepsize = H)
+    time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(current_store))
     
     return {
         'rk4': (time_rk4, temp_rk4),

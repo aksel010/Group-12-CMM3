@@ -31,7 +31,7 @@ def current_params(current):
             for dTb_dt ODE function.
     """
     return (
-        m_cell*24,
+        m_cell,
         c_b,
         current,
         dc_ir*24,
