@@ -75,7 +75,14 @@ def run():
         return None
     critical_current = current_store[-1]
     results = calculate_charging_performance(critical_current, capacity_battery)
-    monte_carlo_error_propagation(critical_current, current_error[-1])
+    mc_results = monte_carlo_error_propagation(critical_current, current_error[-1] if current_error else 0.01)
+    
+    # Add uncertainties to results
+    results['critical_C_rate_err'] = mc_results['C_rate_critical'][1]
+    results['fastest_charge_min_err'] = mc_results['theoretical_min'][1]
+    results['recommended_C_rate_err'] = mc_results['C_rate_practical'][1]
+    results['recommended_charge_min_err'] = mc_results['practical_min'][1]
+    
     return results
 
 if __name__ == "__main__":

@@ -291,10 +291,10 @@ class CMM3App(tk.Tk):
             
             if cancel_event.is_set(): return
             optimum_current = current_store[-1]
-            current_error_mean = np.mean(current_error)
+            current_error_avg = np.mean(current_error) if current_error else 0.0
             self.result_queue.put({"type": "log", "message": f"      ✓ Converged after {len(current_store)} iterations"})
-            self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A ± {current_error_mean:.4f}"})
-            self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A ± {current_error_mean:.4f} \n\n"})
+            self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A ± {current_error_avg:.4f}"})
+            self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A\n  Error: ±{current_error_avg:.4f}\n\n"})
             
             # Step 2: Run all analyses
             if cancel_event.is_set(): return
@@ -322,8 +322,19 @@ class CMM3App(tk.Tk):
             rct_results = rct.run()
             self.result_queue.put({"type": "log", "message": "      ✓ Real charging time computed"})
             if rct_results:
-                self.result_queue.put({"type": "result", "message": f"Recommended C-Rate:\n  {rct_results['recommended_C_rate']:.2f}C\n\n"})
-                self.result_queue.put({"type": "result", "message": f"Recommended Charge Time:\n  {rct_results['recommended_charge_min']:.1f} min\n\n"})
+                self.result_queue.put({"type": "result", "message": f"Charging Performance Analysis:\n\n"})
+                cr_val = rct_results.get('critical_C_rate', 0)
+                cr_err = rct_results.get('critical_C_rate_err', 0)
+                self.result_queue.put({"type": "result", "message": f"  Critical C-Rate:\n    {cr_val:.2f} ± {cr_err:.0e}\n\n"})
+                ft_val = rct_results.get('fastest_charge_min', 0)
+                ft_err = rct_results.get('fastest_charge_min_err', 0)
+                self.result_queue.put({"type": "result", "message": f"  Fastest Charge Time (Theoretical):\n    {ft_val:.1f} ± {ft_err:.0e} min\n\n"})
+                rc_val = rct_results.get('recommended_C_rate', 0)
+                rc_err = rct_results.get('recommended_C_rate_err', 0)
+                self.result_queue.put({"type": "result", "message": f"  Recommended C-Rate (Practical):\n    {rc_val:.2f} ± {rc_err:.0e}\n\n"})
+                rct_val = rct_results.get('recommended_charge_min', 0)
+                rct_err = rct_results.get('recommended_charge_min_err', 0)
+                self.result_queue.put({"type": "result", "message": f"  Recommended Charge Time:\n    {rct_val:.1f} ± {rct_err:.0e} min\n\n"})
             else:
                 self.result_queue.put({"type": "log", "message": "      Warning: Could not retrieve charging time results."})
             
