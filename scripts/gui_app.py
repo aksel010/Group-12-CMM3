@@ -23,7 +23,7 @@ try:
     import src.models.cooling_analysis as ca
     import src.utils.heptane_itpl as hi
     import src.config as config
-    from src.config import current_store, current_threshold, H
+    from src.config import current_store, current_error
 except ImportError as e:
     print(f"Warning: Could not import module: {e}")
 
@@ -253,9 +253,10 @@ class CMM3App(tk.Tk):
             
             if cancel_event.is_set(): return
             optimum_current = current_store[-1]
+            current_error_mean = np.mean(current_error)
             self.result_queue.put({"type": "log", "message": f"      ✓ Converged after {len(current_store)} iterations"})
-            self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A"})
-            self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A\n\n"})
+            self.result_queue.put({"type": "log", "message": f"      Optimum Current: {optimum_current:.4f} A ± {current_error_mean:.4f}"})
+            self.result_queue.put({"type": "result", "message": f"Optimum Current:\n  {optimum_current:.4f} A ± {current_error_mean:.4f} \n\n"})
             
             # Step 2: Run all analyses (from main.py lines 47-58)
             if cancel_event.is_set(): return
