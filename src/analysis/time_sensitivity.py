@@ -4,6 +4,10 @@ Regression and plot for computation time sensitivity with respect to current.
 Loads simulation run-time data and fits a linear regression of calculation time vs. reciprocal current (1/I).
 Standard PEP8 docstrings and clarifying in-line comments.
 """
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
