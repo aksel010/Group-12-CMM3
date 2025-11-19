@@ -99,7 +99,6 @@ if __name__ == "__main__":
     ax3.grid(True, alpha=0.3)
     plt.tight_layout(rect=(0, 0, 1, 0.96))
     print("\n✓ All computations and plots complete!")
-    # Maximize window (cross-platform compatible)
     try:
         manager = plt.get_current_fig_manager()
         if hasattr(manager.window, 'showMaximized'):
