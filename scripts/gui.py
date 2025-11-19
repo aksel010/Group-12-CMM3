@@ -13,7 +13,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 try:
-    import src.models.battery_temperature_ode as battery_temperature_ode
+    import src.models.battery_temperature_ode as ODE
     from src.models.battery_temperature_ode import get_tb, d_tb_dt, get_tb_scipy
     import src.models.rk4_error as rk4e
     import src.models.mass_flowrate as mf
