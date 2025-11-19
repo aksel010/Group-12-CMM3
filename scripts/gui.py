@@ -6,6 +6,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import threading
 import queue
+import importlib
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -217,6 +218,16 @@ class CMM3App(tk.Tk):
             config.H = step_size
             config.t_b_max = t_b_max
             config.t_in = t_in
+            
+            # Reload all modules to pick up the updated config values
+            importlib.reload(config)
+            importlib.reload(ODE)
+            importlib.reload(rk4e)
+            importlib.reload(mf)
+            importlib.reload(oc)
+            importlib.reload(rct)
+            importlib.reload(ca)
+            importlib.reload(hi)
             
             if cancel_event.is_set(): return
             required_modules = {'oc', 'ODE', 'mf', 'rk4e', 'rct', 'hi'}

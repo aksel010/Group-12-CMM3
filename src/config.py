@@ -26,7 +26,7 @@ current_store = []  # for optimum current search
 current_threshold = 1e-6  # convergence threshold
 current_error=[]
 
-t_b_max = 40 + 273.13  # [K] maximum safe (cell) temperature
+t_b_max = 60 + 273.13  # [K] maximum safe (cell) temperature
 t_in = 15 + 273.13  # [K] inlet coolant temp
 
 # ========== System/Channel Properties ========== #

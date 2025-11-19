@@ -1,0 +1,15 @@
+==== Group 12 - CMM3 GUI Analysis Summary ====
+
+Optimum Current:
+  9.8379 A ± nan 
+
+Mass Flowrate:
+  Data collected
+
+Recommended C-Rate:
+  1.33C
+
+Recommended Charge Time:
+  54.0 min
+
+
