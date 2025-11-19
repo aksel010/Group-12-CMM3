@@ -1,30 +1,12 @@
-# Group-12-CMM3: Computational Framework for Battery Thermal Management System Optimization
+# Group-12-CMM3: PHEV Battery Thermal Management System Optimization
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Abstract
 
 This repository contains a comprehensive computational framework for the simulation and optimization of an advanced Battery Thermal Management System (BTMS) for Plug-in Hybrid Electric Vehicles (PHEVs). The system employs n-heptane, a readily available hydrocarbon fuel, as a thermal coupling medium between the battery pack and a vehicle heat recovery circuit. Through multi-physics coupling of thermal dynamics, thermohydraulic analysis, and electrochemical modeling, the framework determines optimal charging protocols that maximize energy transfer while maintaining strict thermal safety constraints. This work demonstrates the feasibility of fuel-based thermal management as an alternative to conventional water-glycol systems, with implications for vehicle thermal architecture and charging infrastructure design.
 
-## 1. Introduction
-
-### 1.1 Background and Motivation
-
-Rapid electrification of transportation systems requires advanced thermal management solutions for high-capacity battery packs. Contemporary lithium-ion battery technology exhibits strong temperature sensitivity in both charging efficiency and cycle life, with optimal operating windows typically constrained to 20°C–40°C. Conventional liquid cooling systems, based on water-glycol mixtures, present several limitations: corrosion potential, freeze-thaw concerns in diverse climates, and parasitic energy consumption from dedicated cooling pumps.
-
-The proposed n-heptane BTMS addresses these limitations by leveraging the thermal properties of hydrocarbon fuels already present in PHEV fuel tanks. This approach enables thermal integration at minimal system complexity and power overhead.
-
-### 1.2 Research Objectives
-
-This framework addresses the following research questions:
-
-1. What is the minimum feasible battery charging time consistent with thermal safety constraints (T_b ≤ 40°C)?
-2. What charging current maximizes energy transfer rate within specified thermal and structural limits?
-3. How do key system parameters (inlet coolant temperature, channel geometry, RK4 step size) affect optimal charging protocols?
-4. What practical charging rates (C-rates) can real-world charging infrastructure support?
-
-## 2. Project Structure and Architecture
+## 1. Project Structure and Architecture
 
 ```
 Group-12-CMM3/
@@ -85,73 +67,16 @@ Group-12-CMM3/
 └── key files/                             # Reference documentation
 ```
 
-## 3. Mathematical Framework
+## 2. Installation and Environment Setup
 
-### 3.1 Battery Temperature Evolution
-
-The transient battery bulk temperature T_b(t) is governed by the differential equation:
-
-```
-dT_b/dt = [Q_elec - Q_conv] / (m_b · c_b)
-```
-
-where:
-- Q_elec = I² R is the electrical heating from resistive losses (W)
-- Q_conv is the convective cooling to the thermal management fluid (W)
-- m_b and c_b are the battery mass and specific heat capacity (kg, J/kg·K)
-
-The convective cooling term is computed as:
-
-```
-Q_conv = h · A_s · (T_b - T_c_in) / [1 + h·A_s/(2·ṁ·c_p)]
-```
-
-with:
-- h: convective heat transfer coefficient (W/m²·K)
-- A_s: wetted surface area (m²)
-- ṁ: coolant mass flow rate (kg/s)
-- c_p: coolant specific heat capacity (J/kg·K)
-
-### 3.2 Numerical Solution Method
-
-The ODE is integrated using the 4th-order Runge-Kutta (RK4) method with fixed step size H:
-
-```
-T_{n+1} = T_n + (H/6)(k_1 + 2k_2 + 2k_3 + k_4)
-```
-
-where k_i are stage derivatives. Alternative solutions using SciPy's LSODA method (adaptive-order BDF) provide validation and error assessment.
-
-### 3.3 Thermohydraulic Coupling
-
-Mass flow rate ṁ is determined by solving the pressure balance equation:
-
-```
-P_pump(ṁ) = P_loss(ṁ)
-```
-
-using Newton-Raphson iteration, where the pump pressure rise and system head loss depend nonlinearly on flow rate and temperature.
-
-### 3.4 Optimization Algorithm
-
-The optimization determines critical charging current I_crit such that the final battery temperature equals the thermal limit T_b(t_final) = T_b,max. This is accomplished through:
-
-1. Initialization of current sweep over 6–13 A in 1 A increments
-2. ODE solution for each current value to obtain final temperature
-3. Cubic spline interpolation of temperature deviation ΔT(I) = T_b(t_final) - T_b,max
-4. Root finding via bisection and Newton-Raphson methods
-5. Convergence checking with relative tolerance threshold (default: 10^-6)
-
-## 4. Installation and Environment Setup
-
-### 4.1 System Requirements
+### 2.1 System Requirements
 
 - **Python:** 3.8 or higher (tested on 3.9, 3.10, 3.11, 3.13)
-- **Memory:** ≥512 MB RAM for full analysis
+- **Git** 
 - **Storage:** ~500 MB for dependencies
 - **OS:** Windows, macOS, Linux
 
-### 4.2 Installation Procedure
+### 2.2 Installation Procedure
 
 ```bash
 # Clone repository
@@ -167,14 +92,14 @@ venv\Scripts\activate
 # On macOS/Linux:
 source venv/bin/activate
 
-# Install in editable mode (development)
+# Install in editable mode
 pip install -e .
 
 # Or install with exact versions (reproducibility)
 pip install -r requirements.txt
 ```
 
-### 4.3 Dependency Stack
+### 3.3 Dependency Stack
 
 | Package | Minimum Version | Purpose |
 |---------|-----------------|---------|
@@ -184,12 +109,6 @@ pip install -r requirements.txt
 | pandas | 2.0.0 | Data I/O and manipulation |
 | seaborn | 0.12.0 | Statistical visualization |
 | scikit-learn | 1.3.0 | Sensitivity analysis and regression |
-
-### 4.4 Verification
-
-```bash
-python -c "import src.models.battery_temperature_ode; print('Installation verified')"
-```
 
 ## 5. Usage and Workflow
 
