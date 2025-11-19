@@ -47,10 +47,20 @@ def compute_optimum_current(threshold=current_threshold):
     return current_store
 
 if __name__ == "__main__":
+    # --- 1. Define and create output directories ---
+    RESULTS_DIR = os.path.join(os.path.dirname(__file__), '..', 'results')
+    FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
+    TABLES_DIR = os.path.join(RESULTS_DIR, 'tables')
+    os.makedirs(FIGURES_DIR, exist_ok=True)
+    os.makedirs(TABLES_DIR, exist_ok=True)
+
     # Run convergence loop for optimum current
     current_store_result = compute_optimum_current(threshold=1e-6)
-    print(f'\n✓ Model converged after {len(current_store_result)} iterations')
-    print(f'Optimum Current: {current_store_result[-1]:.4f} A\n')
+    optimum_current = current_store_result[-1]
+    num_iterations = len(current_store_result)
+
+    print(f'\n✓ Model converged after {num_iterations} iterations')
+    print(f'Optimum Current: {optimum_current:.4f} A\n')
     print("==== Group 12 - CMM3 Consolidated Results ====\n")
     print("\n--- RK4 Error Analysis ---")
     rk4e.run()
@@ -59,7 +69,7 @@ if __name__ == "__main__":
     print("\n--- Optimum Current Analysis ---")
     oc_data = oc.run()
     print("\n--- Real Charging Time ---")
-    rct.run()
+    rct_results = rct.run()
     print("\n--- Heptane Fluid Properties ---")
     hi_data = hi.run()
 
@@ -68,8 +78,8 @@ if __name__ == "__main__":
     fig.suptitle('Group 12 - CMM3 Complete Analysis', fontsize=20, fontweight='bold')
     # Plot 1: ODE (RK4 vs SciPy)
     ax1 = plt.subplot(1, 3, 1)
-    time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(current_store[-1]), stepsize = H)
-    time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(current_store[-1]))
+    time_rk4, temp_rk4 = get_tb(d_tb_dt, current_params(optimum_current), stepsize = H)
+    time_scipy, temp_scipy = get_tb_scipy(d_tb_dt, current_params(optimum_current))
     ax1.plot(time_rk4, temp_rk4, 'b--', label=f'RK4 (h={H}s)', linewidth=1.5)
     ax1.plot(time_scipy, temp_scipy, 'r-', linewidth=3, alpha=0.6, label='SciPy LSODA')
     ax1.set_xlabel('Time (s)', fontsize=10)
@@ -98,6 +108,26 @@ if __name__ == "__main__":
     ax3.legend(fontsize=9)
     ax3.grid(True, alpha=0.3)
     plt.tight_layout(rect=(0, 0, 1, 0.96))
+
+    # --- 3. Save plot and results summary ---
+    plot_path = os.path.join(FIGURES_DIR, 'main_analysis_plot.png')
+    fig.savefig(plot_path, dpi=300)
+    print(f"\n✓ Plot saved to {os.path.relpath(plot_path)}")
+
+    summary_path = os.path.join(TABLES_DIR, 'main_summary.txt')
+    with open(summary_path, 'w') as f:
+        f.write("==== Group 12 - CMM3 CLI Analysis Summary ====\n\n")
+        f.write(f"Optimum Current: {optimum_current:.4f} A\n")
+        f.write(f"Convergence Iterations: {num_iterations}\n\n")
+        if rct_results:
+            f.write("--- Charging Performance ---\n")
+            f.write(f"  Recommended C-Rate: {rct_results.get('recommended_C_rate', 'N/A')}C\n")
+            f.write(f"  Recommended Charge Time: {rct_results.get('recommended_charge_min', 'N/A')} min\n")
+            f.write(f"  Critical C-Rate: {rct_results.get('critical_C_rate', 'N/A')}C\n")
+            f.write(f"  Fastest Theoretical Charge Time: {rct_results.get('fastest_charge_min', 'N/A')} min\n")
+    print(f"✓ Results summary saved to {os.path.relpath(summary_path)}")
+
+
     print("\n✓ All computations and plots complete!")
     try:
         manager = plt.get_current_fig_manager()

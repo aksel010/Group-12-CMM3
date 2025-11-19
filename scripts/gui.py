@@ -452,12 +452,30 @@ class CMM3App(tk.Tk):
                 
                 self.fig.tight_layout(rect=(0, 0, 1, 0.96))
                 self.canvas.draw()
-                self.log("      ✓ Plots generated successfully")
+                self.log("\n[INFO] Plots generated successfully in GUI.")
+
+                # --- Save plot and results to /results folder ---
+                RESULTS_DIR = os.path.join(os.path.dirname(__file__), '..', 'results')
+                FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
+                TABLES_DIR = os.path.join(RESULTS_DIR, 'tables')
+                os.makedirs(FIGURES_DIR, exist_ok=True)
+                os.makedirs(TABLES_DIR, exist_ok=True)
+
+                plot_path = os.path.join(FIGURES_DIR, 'gui_analysis_plot.png')
+                self.fig.savefig(plot_path, dpi=300)
+                self.log(f"[INFO] Plot saved to {os.path.relpath(plot_path)}")
+
+                summary_path = os.path.join(TABLES_DIR, 'gui_summary.txt')
+                with open(summary_path, 'w') as f:
+                    f.write("==== Group 12 - CMM3 GUI Analysis Summary ====\n\n")
+                    f.write(self.results_text.get("1.0", "end"))
+                self.log(f"[INFO] Results summary saved to {os.path.relpath(summary_path)}")
                 self.log("\n" + "="*100)
                 self.log("[COMPLETE] All computations and visualizations finished successfully!")
                 self.log("="*100 + "\n")
                 self.results_text.insert("end", "Status: COMPLETE\n\n")
                 self.results_text.insert("end", f"Final Optimum Current: {optimum_current:.4f} A")
+            
             except Exception as e:
                 self.log(f"\n[ERROR] Failed to generate plots: {str(e)}")
                 import traceback
