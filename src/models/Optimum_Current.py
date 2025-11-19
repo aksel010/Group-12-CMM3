@@ -30,6 +30,7 @@ def current_params(current):
         tuple: Parameters (m_b, c_b, current, losses, a_s, t_in, ss_value)
             for dTb_dt ODE function.
     """
+    print(current)
     return (
         m_cell,
         c_b,

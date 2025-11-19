@@ -29,6 +29,7 @@ def compute_optimum_current(threshold=current_threshold):
     Returns:
         list: List of current guesses with final critical value last.
     """
+    mf_data = mf.run()
     current_store.clear()
     result = oc.run()
     # Defensive checks: ensure 'critical' exists and has at least one value
