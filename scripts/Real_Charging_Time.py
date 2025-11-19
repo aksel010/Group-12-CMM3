@@ -66,14 +66,17 @@ def run():
     Retrieve the latest critical current, compute and print practical and theoretical fast charge results.
     """
     print("Computing... (approx 40-120 seconds)")
-    if len(current_store) == 1:
+    if not current_store:
         print("Error: Optimum current not yet calculated!")
+        return None
 
-    if len(current_error) == 0:
+    if not current_error:
         print("Error: Optimum current error not yet calculated!")
+        return None
     critical_current = current_store[-1]
     results = calculate_charging_performance(critical_current, capacity_battery)
     monte_carlo_error_propagation(critical_current, current_error[-1])
+    return results
 
 if __name__ == "__main__":
     run()
