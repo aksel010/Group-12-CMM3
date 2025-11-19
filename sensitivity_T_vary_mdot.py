@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from math import ceil
 from src.config import *
 from src.models.battery_temperature_ode import d_tb_dt, get_tb
-from src.models.mass_flowrates import get_steady_state_values 
+from src.models.mass_flowrate import get_steady_state_values 
 
 M_flow_ss, T_c_avg_nominal_coolant, h_ss_nominal = get_steady_state_values()
 M_flow_nominal = M_flow_ss 
