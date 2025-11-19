@@ -2,8 +2,9 @@
 This module simulates the final battery temperature's sensitivity to the
 coolant mass flow rate using an ODE solver and a cubic spline interpolation.
 """
-
+import sys
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 import numpy as np
 import pandas as pd
