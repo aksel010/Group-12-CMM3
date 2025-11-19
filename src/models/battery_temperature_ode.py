@@ -7,16 +7,24 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
 
-# Complete params_initial tuple
-params_initial = (
-    m_cell,       # kg
-    c_b,       # J/(kg·K)
-    current_0,      # Initial current 15A (scalar, not list)
-    dc_ir*24,      # Fixed resistance Ω
-    a_s,       # m²
-    t_in,      # K
-    mass_flow_initial       # kg/s - nominal mass flow rate
-)
+# Function to build params_initial dynamically (so it picks up updated config values)
+def get_params_initial():
+    """Build params_initial tuple from current config values."""
+    result = (
+        m_cell,       # kg
+        c_b,       # J/(kg·K)
+        current_0,      # Initial current (scalar)
+        dc_ir*24,      # Fixed resistance Ω
+        a_s,       # m²
+        t_in,      # K
+        mass_flow_initial       # kg/s - nominal mass flow rate
+    )
+    # Debug: print what values we're using
+    print(f"[DEBUG] get_params_initial(): current_0={current_0}, t_in={t_in}")
+    return result
+
+# Complete params_initial tuple (initialized but will be rebuilt by get_params_initial())
+params_initial = get_params_initial()
 
 def d_tb_dt(tb, t, params):
     """

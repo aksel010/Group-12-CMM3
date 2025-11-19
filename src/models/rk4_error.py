@@ -4,7 +4,7 @@ PEP8-compliant docstrings/descriptions for all functions and script blocks.
 """
 import numpy as np
 from src.config import *
-from src.models.battery_temperature_ode import get_tb, d_tb_dt, params_initial
+from src.models.battery_temperature_ode import get_tb, d_tb_dt, get_params_initial
 
 
 def rk4_error():
@@ -15,6 +15,7 @@ def rk4_error():
         float: Max RK4 truncation error [K].
     """
     rk4_step = H
+    params_initial = get_params_initial()  # Rebuild with fresh config values
     T_fullstep, t_fullstep = get_tb(d_tb_dt, params_initial, stepsize=rk4_step)
     T_halfstep, t_halfstep = get_tb(d_tb_dt, params_initial, stepsize=rk4_step / 2)
     p = 4.0  # RK4 method order

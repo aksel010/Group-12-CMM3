@@ -164,7 +164,7 @@ def run():
         t_total = q_b / current
         
         # Solve temperature ODE using RK4 solver
-        time_points, temp_battery = get_tb(d_tb_dt, current_params(current), stepsize=0.2)
+        time_points, temp_battery = get_tb(d_tb_dt, current_params(current), stepsize=H)
 
         current_runs.append(current)
         final_temperatures.append(temp_battery[-1])

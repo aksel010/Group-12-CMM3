@@ -211,23 +211,45 @@ class CMM3App(tk.Tk):
         Iteratively solves for optimum current, then runs all module analyses.
         Uses GUI inputs to override config values dynamically.
         """
+        global config, ODE, rk4e, mf, oc, rct, ca, hi
+        
         result = {"success": False, "data": {}, "error": None, "status": "running"}
         try:
-            # Update config with GUI inputs
+            # Force reimport of config in all dependent modules by deleting cached modules FIRST
+            # This ensures all modules read the fresh config values
+            modules_to_reload = [
+                'src.config',
+                'src.models.battery_temperature_ode',
+                'src.models.rk4_error', 
+                'src.models.mass_flowrate',
+                'src.models.optimum_current',
+                'scripts.charging_time_analysis',
+                'src.models.cooling_analysis',
+                'src.utils.heptane_interpolater'
+            ]
+            for mod_name in modules_to_reload:
+                if mod_name in sys.modules:
+                    del sys.modules[mod_name]
+            
+            # Re-import config first
+            import src.config as config
+            
+            # Now update config with GUI inputs AFTER reimporting
             config.current_0 = initial_current
             config.H = step_size
             config.t_b_max = t_b_max
             config.t_in = t_in
             
-            # Reload all modules to pick up the updated config values
-            importlib.reload(config)
-            importlib.reload(ODE)
-            importlib.reload(rk4e)
-            importlib.reload(mf)
-            importlib.reload(oc)
-            importlib.reload(rct)
-            importlib.reload(ca)
-            importlib.reload(hi)
+            # Now re-import all other modules with updated config
+            import src.models.battery_temperature_ode as ODE
+            from src.models.battery_temperature_ode import get_tb, d_tb_dt, get_tb_scipy
+            import src.models.rk4_error as rk4e
+            import src.models.mass_flowrate as mf
+            import src.models.optimum_current as oc
+            from src.models.optimum_current import current_params
+            import scripts.charging_time_analysis as rct
+            import src.models.cooling_analysis as ca
+            import src.utils.heptane_interpolater as hi
             
             if cancel_event.is_set(): return
             required_modules = {'oc', 'ODE', 'mf', 'rk4e', 'rct', 'hi'}
@@ -238,6 +260,7 @@ class CMM3App(tk.Tk):
             self.result_queue.put({"type": "log", "message": "\n" + "="*100})
             self.result_queue.put({"type": "log", "message": "[STARTING] Group 12 - CMM3 Consolidated Analysis"})
             self.result_queue.put({"type": "log", "message": f"Parameters: T_b_max={t_b_max-273.13:.1f}°C, T_in={t_in-273.13:.1f}°C, I_0={initial_current:.1f}A, H={step_size:.0f}s"})
+            self.result_queue.put({"type": "log", "message": f"Config values after update: current_0={config.current_0}, H={config.H}, t_b_max={config.t_b_max}, t_in={config.t_in}"})
             self.result_queue.put({"type": "log", "message": "="*100})
             
             # Step 1: Compute optimum current
