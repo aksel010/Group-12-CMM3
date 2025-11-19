@@ -1,0 +1,6 @@
+==== Time Sensitivity Analysis Summary ====
+
+Linear Regression Model: $CT = 27.07/I + 0.00,\ RMSE = 0.07$ s
+Coefficient (a): 27.07404847061742
+Intercept (b): 0.003450994888221093
+Root Mean Squared Error (RMSE): 0.07231892081062974
