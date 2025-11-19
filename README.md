@@ -7,6 +7,7 @@
 This repository contains a Python-based computational framework for simulating and optimizing an innovative Battery Thermal Management System (BTMS) for Plug-in Hybrid Electric Vehicles (PHEVs). The system employs the vehicle's fuel (n-heptane) as a coolant medium, offering superior thermal performance compared to conventional water-glycol systems.
 
 **Research Objectives:**
+
 - Determine minimum feasible charging time while maintaining the battery temperature below 40°C
 - Maximize charging current within thermal constraints
 
@@ -28,11 +29,11 @@ Group-12-CMM3-1/
 │
 ├── data/                          # Thermophysical data
 │   ├── raw/                       # Original NIST data
-│   │   ├── n_heptane_2.txt        
+│   │   ├── n_heptane_2.txt      
 │   │   ├── real_data_c_rate.csv   
 │   └── processed/                 # Fitted polynomial coefficients
-│       ├── temp_time_charging_liu2                 
-│       └── time_of_simulation.csv           
+│       ├── temp_time_charging_liu2               
+│       └── time_of_simulation.csv         
 │
 ├── src/                           # Source code
 │   ├── models/                    # Core physics models
@@ -86,14 +87,14 @@ Group-12-CMM3-1/
 ```bash
 # Clone repository
 # git clone <repository-url>
-# cd Group-12-CMM3-1
+# cd Group-12-CMM3
 
 # Create virtual environment
 python -m venv venv
 
 # Activate virtual environment
 # Windows:
-virtualenv\Scripts\activate
+venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -121,6 +122,7 @@ python src/gui_app.py
 ```
 
 The GUI provides:
+
 - Parameter configuration interface
 - Real-time simulation progress
 - Interactive result visualization
@@ -132,6 +134,7 @@ python scripts/main.py
 ```
 
 Outputs optimal design parameters and plots:
+
 - Optimum Current (A)
 - ODE Solution Validation
 - Pressure Balance Residual
@@ -161,40 +164,40 @@ if __name__ == "__main__":
 
 ### Battery Specifications
 
-| Parameter | Default | Units | Description |
-|-----------|---------|-------|-------------|
-| n_cell | 240 | - | total number of cells |
-| v_cell | 1.2 | V | per cell |
-| capacity_cell | 6 | Ah | per cell |
-| dc_ir | 2.5e-3 | Ohm | per cell |
-| m_cell | 0.158 | kg | test cell mass |
-| m_b | m_cell * n_cell | kg | total mass |
-| c_b | 2788 | J/kgK | specific heat capacity |
-| q_b | capacity_cell * 3600 | As | total charge |
-| r_b | dc_ir * n_cell | Ohm | total resistance |
-| t_b_max | 40 + 273.13 | K | maximum safe temperature |
-| t_in | 15 + 273.13 | K | inlet coolant temp |
+| Parameter     | Default              | Units | Description              |
+| ------------- | -------------------- | ----- | ------------------------ |
+| n_cell        | 240                  | -     | total number of cells    |
+| v_cell        | 1.2                  | V     | per cell                 |
+| capacity_cell | 6                    | Ah    | per cell                 |
+| dc_ir         | 2.5e-3               | Ohm   | per cell                 |
+| m_cell        | 0.158                | kg    | test cell mass           |
+| m_b           | m_cell * n_cell      | kg    | total mass               |
+| c_b           | 2788                 | J/kgK | specific heat capacity   |
+| q_b           | capacity_cell * 3600 | As    | total charge             |
+| r_b           | dc_ir * n_cell       | Ohm   | total resistance         |
+| t_b_max       | 40 + 273.13          | K     | maximum safe temperature |
+| t_in          | 15 + 273.13          | K     | inlet coolant temp       |
 
 ### Channel Geometry
 
-| Parameter | Default | Units | Description |
-|-----------|---------|-------|-------------|
-| n | 5 | - | number of coolant branches |
-| d | 17e-3 | m | main pipe diameter |
-| w_branch | 30e-3 | m | branch width |
-| h_branch | 2.75e-3 | m | branch height |
-| l_a | 0.5 | m | main pipe segment length |
-| l_b | 0.5 | m | branch length |
-| l_c | 0.2 | m | branch outlet length |
+| Parameter | Default | Units | Description                |
+| --------- | ------- | ----- | -------------------------- |
+| n         | 5       | -     | number of coolant branches |
+| d         | 17e-3   | m     | main pipe diameter         |
+| w_branch  | 30e-3   | m     | branch width               |
+| h_branch  | 2.75e-3 | m     | branch height              |
+| l_a       | 0.5     | m     | main pipe segment length   |
+| l_b       | 0.5     | m     | branch length              |
+| l_c       | 0.2     | m     | branch outlet length       |
 
 ### Operating Conditions
 
-| Parameter | Default | Units | Description |
-|-----------|---------|-------|-------------|
-| current_0 | 15 | A | initial current |
-| current_threshold | 1e-6 | - | convergence threshold |
-| mass_flow_initial | 0.0001 | kg/s | nominal mass flowrate |
-| H | 30 | s | RK4 time integration step size |
+| Parameter         | Default | Units | Description                    |
+| ----------------- | ------- | ----- | ------------------------------ |
+| current_0         | 15      | A     | initial current                |
+| current_threshold | 1e-6    | -     | convergence threshold          |
+| mass_flow_initial | 0.0001  | kg/s  | nominal mass flowrate          |
+| H                 | 30      | s     | RK4 time integration step size |
 
 ## Development Team
 
@@ -205,11 +208,8 @@ This project was developed by a team of students at the University of Edinburgh.
 ## References
 
 1. Al Qubeissi, M., Almshahy, A., et al. "Modelling of battery thermal management: A new concept of cooling using fuel." *Fuel*, vol. 310, 2022.
-
 2. NIST Chemistry WebBook. "n-Heptane Thermophysical Properties." https://webbook.nist.gov/cgi/cbook.cgi?ID=C142825
-
 3. Incropera, F. P., & DeWitt, D. P. *Fundamentals of Heat and Mass Transfer* (6th ed.). John Wiley & Sons, 2007.
-
 4. White, F. M. *Fluid Mechanics* (7th ed.). McGraw-Hill, 2011.
 
 ---
