@@ -121,6 +121,7 @@ python scripts/main.py
 ```
 
 This generates:
+
 - Convergence metrics for optimum current determination
 - RK4 truncation error estimates
 - Thermohydraulic steady-state solutions
@@ -139,44 +140,11 @@ python scripts/gui.py
 ```
 
 The GUI provides:
+
 - Real-time parameter adjustment (current, step size, thermal limits)
 - Live convergence monitoring with status logging
 - Interactive plot generation
 - Result export functionality
-
-### 5.3 Programmatic Access
-
-For integration into larger workflows:
-
-```python
-import src.config as config
-import src.models.optimum_current as oc
-from src.models.optimum_current import current_params
-from src.models.battery_temperature_ode import d_tb_dt, get_tb
-
-# Configure system parameters
-config.current_0 = 15.0        # Initial current (A)
-config.H = 30                  # RK4 step size (s)
-config.t_b_max = 313.15        # Temperature limit (K)
-config.t_in = 288.15           # Inlet temperature (K)
-
-# Execute optimization
-current_store = []
-for iteration in range(15):
-    result = oc.run()
-    I_crit = result['critical'][0]
-    current_store.append(I_crit)
-    
-    if len(current_store) > 1:
-        convergence = abs(current_store[-1] - current_store[-2]) / current_store[-1]
-        if convergence < config.current_threshold:
-            print(f"Converged: I_crit = {I_crit:.4f} A")
-            break
-
-# Solve ODE with optimized current
-params = current_params(current_store[-1])
-time_rk4, T_rk4 = get_tb(d_tb_dt, params, stepsize=config.H)
-```
 
 ## 6. Configuration Parameters
 
@@ -184,75 +152,44 @@ All parameters are centralized in `src/config.py`. Key parameters are documented
 
 ### 6.1 Battery Pack Specifications
 
-| Parameter | Symbol | Default | Unit | Source/Justification |
-|-----------|--------|---------|------|----------------------|
-| Number of cells | n_cell | 240 | - | Series connection design |
-| Cell voltage | v_cell | 1.2 | V | NiMH chemistry |
-| Cell capacity | Q_cell | 6 | Ah | Standard automotive cell |
-| Cell mass | m_cell | 0.00158 | kg | Measured |
-| Internal resistance per cell | r_cell | 2.5×10⁻³ | Ω | DC resistance measurement |
-| Pack mass | m_b | 3.792 | kg | Sum of cell masses |
-| Specific heat capacity | c_b | 2788 | J/kg·K | Literature (NiMH) |
-| Temperature safety limit | T_b,max | 313.15 | K | Design specification (40°C) |
+| Parameter                    | Symbol  | Default     | Unit    | Source/Justification         |
+| ---------------------------- | ------- | ----------- | ------- | ---------------------------- |
+| Number of cells              | n_cell  | 240         | -       | Series connection design     |
+| Cell voltage                 | v_cell  | 1.2         | V       | NiMH chemistry               |
+| Cell capacity                | Q_cell  | 6           | Ah      | Standard automotive cell     |
+| Cell mass                    | m_cell  | 0.00158     | kg      | Measured                     |
+| Internal resistance per cell | r_cell  | 2.5×10⁻³ | Ω      | DC resistance measurement    |
+| Pack mass                    | m_b     | 3.792       | kg      | Sum of cell masses           |
+| Specific heat capacity       | c_b     | 2788        | J/kg·K | Literature (NiMH)            |
+| Temperature safety limit     | T_b,max | 313.15      | K       | Design specification (40°C) |
 
 ### 6.2 Thermal Management System
 
-| Parameter | Symbol | Default | Unit |
-|-----------|--------|---------|------|
-| Inlet coolant temperature | T_in | 288.15 | K |
-| Initial mass flow guess | ṁ_0 | 1.0×10⁻⁴ | kg/s |
-| RK4 time step | H | 30 | s |
+| Parameter                 | Symbol | Default     | Unit |
+| ------------------------- | ------ | ----------- | ---- |
+| Inlet coolant temperature | T_in   | 288.15      | K    |
+| Initial mass flow guess   | ṁ_0   | 1.0×10⁻⁴ | kg/s |
+| RK4 time step             | H      | 30          | s    |
 
 ### 6.3 Cooling Channel Geometry
 
-| Parameter | Symbol | Default | Unit | Description |
-|-----------|--------|---------|------|-------------|
-| Number of parallel branches | n | 5 | - | Channel distribution |
-| Main pipe diameter | d | 17×10⁻³ | m | Internal passage |
-| Channel width | w | 30×10⁻³ | m | Between fins |
-| Channel height | h | 2.75×10⁻³ | m | Fin spacing |
-| Main pipe length | l_a | 0.5 | m | Inlet section |
-| Branch length | l_b | 0.5 | m | Heat exchanger |
-| Outlet length | l_c | 0.2 | m | Discharge section |
+| Parameter                   | Symbol | Default      | Unit | Description          |
+| --------------------------- | ------ | ------------ | ---- | -------------------- |
+| Number of parallel branches | n      | 5            | -    | Channel distribution |
+| Main pipe diameter          | d      | 17×10⁻³   | m    | Internal passage     |
+| Channel width               | w      | 30×10⁻³   | m    | Between fins         |
+| Channel height              | h      | 2.75×10⁻³ | m    | Fin spacing          |
+| Main pipe length            | l_a    | 0.5          | m    | Inlet section        |
+| Branch length               | l_b    | 0.5          | m    | Heat exchanger       |
+| Outlet length               | l_c    | 0.2          | m    | Discharge section    |
 
 ### 6.4 Convergence Parameters
 
-| Parameter | Default | Justification |
-|-----------|---------|----------------|
+| Parameter                     | Default   | Justification                            |
+| ----------------------------- | --------- | ---------------------------------------- |
 | Current convergence threshold | 1×10⁻⁶ | Relative tolerance, engineering practice |
-| Root finding tolerance | 0.01 | K, acceptable thermal margin |
-| Newton-Raphson iterations | 50 | Maximum per call |
-
-## 7. Theoretical Validation
-
-### 7.1 Thermophysical Properties
-
-The framework uses NIST-validated correlations for n-heptane properties:
-
-- Density: ρ(T) computed from NIST database fitted polynomials
-- Specific heat capacity: c_p(T) via temperature-dependent correlations
-- Dynamic viscosity: μ(T) from Vogel-Tammann-Fulcher equation
-- Thermal conductivity: k(T) from literature correlations
-
-### 7.2 Heat Transfer Coefficient
-
-The convective coefficient h is computed using the Dittus-Boelert correlation:
-
-```
-Nu = 0.023 Re^0.8 Pr^0.4
-```
-
-where Nu = hD_h/k, Re = ρVD_h/μ, Pr = c_p·μ/k, valid for turbulent flow (Re > 10,000).
-
-### 7.3 Head Loss Calculations
-
-Pressure drop across cooling channels is computed using:
-
-```
-ΔP = f · (L/D_h) · (ρV²/2)
-```
-
-where friction factor f is determined from Colebrook-White equation or smooth-pipe approximations.
+| Root finding tolerance        | 0.01      | K, acceptable thermal margin             |
+| Newton-Raphson iterations     | 50        | Maximum per call                         |
 
 ## 8. Output Files and Results
 
@@ -278,82 +215,16 @@ results/
 
 All CSV files follow standard tabular format with headers and are immediately importable via pandas or similar tools.
 
-## 9. Computational Performance
-
-Performance benchmarks on reference hardware (Intel i5, 16 GB RAM):
-
-| Operation | Time (s) | Notes |
-|-----------|----------|-------|
-| Single ODE solve | 2–5 | Depends on H and final time |
-| Current optimization iteration | 8–12 | Includes grid search + root finding |
-| Full convergence loop | 60–180 | Typically 3–5 iterations |
-| Sensitivity parameter sweep | 600–1200 | 100+ parameter combinations |
-| Startup (CLI) | <2 | Lazy module loading |
-
-## 10. Troubleshooting and Known Issues
-
-### 10.1 Module Import Errors
-
-**Symptom:** `ModuleNotFoundError: No module named 'src'`
-
-**Resolution:**
-```bash
-pip install -e .
-# Or set PYTHONPATH
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-```
-
-### 10.2 GUI Rendering Failures
-
-**Symptom:** GUI fails to launch or displays blank windows
-
-**Resolution:**
-- Verify tkinter availability: `python -m tkinter`
-- Run from project root directory
-- Ensure graphics drivers are current
-
-### 10.3 Convergence Stagnation
-
-**Symptom:** Optimization does not converge within maximum iterations
-
-**Remediation:**
-- Reduce `current_threshold` (e.g., 1×10⁻⁵ instead of 1×10⁻⁶)
-- Narrow current sweep range in `optimum_current.py`
-- Increase `H` for faster (less accurate) computation
-
-### 10.4 Numerical Instability
-
-**Symptom:** Temperature predictions diverge or become non-physical
-
-**Debugging:**
-- Check parameter consistency in `config.py`
-- Verify mass flow convergence in `mass_flowrate.py`
-- Inspect ODE Jacobian conditioning
-- Reduce `H` for improved stability
-
 ## 11. Validation and Uncertainty
 
-### 11.1 Error Estimation
-
-RK4 truncation error is estimated by comparing full-step and half-step solutions:
-
-```
-ε ≈ |T_RK4(Δt) - T_RK4(Δt/2)| / (2^p - 1)
-```
-
-where p = 4 for RK4 method. Typical errors are <0.5 K across parameter space.
-
-### 11.2 Sensitivity Analysis
-
-Parametric uncertainties are propagated via Monte Carlo simulation with 10,000 trials. Key input uncertainties:
+Uncertainties are propagated via Monte Carlo simulation with 10,000 trials. Key input uncertainties:
 
 - Charging current: ±1% (measurement precision)
 - Battery capacity: ±5% (manufacturing tolerance)
 - Thermophysical properties: ±3% (correlation fit error)
 
-### 11.3 Validation Against Literature
-
 Results are compared against:
+
 - Published thermal modeling studies (Al Qubeissi et al., 2022)
 - Manufacturer specifications for NiMH cells
 - NIST reference data for n-heptane properties
@@ -396,12 +267,12 @@ Copyright © 2025 Group 12, University of Edinburgh. All rights reserved.
 
 ## 15. Author Information
 
-**Institution:** University of Edinburgh  
-**Department:** School of Engineering  
-**Completion Date:** November 2025  
+**Institution:** University of Edinburgh
+**Department:** School of Engineering
+**Completion Date:** November 2025
 **Project Code:** CMM3 (Computational Modelling Module 3)
 
 ---
 
-**Document Version:** 1.2  
+**Document Version:** 1.2
 **Last Updated:** 19 November 2025
