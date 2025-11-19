@@ -99,5 +99,15 @@ if __name__ == "__main__":
     ax3.grid(True, alpha=0.3)
     plt.tight_layout(rect=(0, 0, 1, 0.96))
     print("\n✓ All computations and plots complete!")
-    plt.get_current_fig_manager().window.showMaximized() # type: ignore
+    try:
+        manager = plt.get_current_fig_manager()
+        if hasattr(manager.window, 'showMaximized'):
+            # PyQt backend
+            manager.window.showMaximized()
+        elif hasattr(manager.window, 'state'):
+            # Tkinter backend
+            manager.window.state('zoomed')
+    except Exception:
+        # Fallback: if neither method works, just show the plot
+        pass
     plt.show()
