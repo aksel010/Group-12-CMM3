@@ -31,7 +31,7 @@ def current_params(current):
             for dTb_dt ODE function.
     """
     return (
-        m_cell*24,
+        m_cell,
         c_b,
         current,
         dc_ir*24,
@@ -132,7 +132,7 @@ def run():
     delta_temp = []
 
     # Run from 6 A to 13 A (adjust range as needed for zero crossing)
-    for current in np.arange(6, 300, 10):
+    for current in np.arange(6, 13, 1):
         iter_start = time.time()
         
         # Total discharge time at this current

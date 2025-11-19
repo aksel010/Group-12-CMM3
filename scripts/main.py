@@ -28,10 +28,16 @@ def compute_optimum_current(threshold=current_threshold):
     """
     current_store.clear()
     result = oc.run()
+    # Defensive checks: ensure 'critical' exists and has at least one value
+    if 'critical' not in result or len(result['critical']) == 0:
+        raise ValueError("oc.run() returned no 'critical' value to initialise current_store")
     current = result['critical'][0]
     current_store.append(current)
-    while abs(current_store[-1]-current_store[-2])/current_store[-1] > threshold or len(current_store) < 2:
+    # Ensure we check length first to avoid indexing when list has only one element
+    while len(current_store) < 2 or abs(current_store[-1] - current_store[-2]) / current_store[-1] > threshold:
         result = oc.run()
+        if 'critical' not in result or len(result['critical']) == 0:
+            raise ValueError("oc.run() returned no 'critical' value during iteration")
         new_current = result['critical'][0]
         current_store.append(new_current)
     return current_store
