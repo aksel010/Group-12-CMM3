@@ -3,9 +3,7 @@ This module simulates the final battery temperature's sensitivity to the
 coolant mass flow rate using an ODE solver and a cubic spline interpolation.
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 import numpy as np
 import pandas as pd
@@ -18,6 +16,13 @@ from scipy.interpolate import CubicSpline
 from src.config import *
 from src.models.battery_temperature_ode import d_tb_dt, get_tb
 from src.models.mass_flowrate import get_steady_state_values
+
+# --- 1. Define and create output directories ---
+VALIDATION_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'results', 'validation')
+FIGURES_DIR = os.path.join(VALIDATION_DIR, 'figures')
+TABLES_DIR = os.path.join(VALIDATION_DIR, 'tables')
+os.makedirs(FIGURES_DIR, exist_ok=True)
+os.makedirs(TABLES_DIR, exist_ok=True)
 
 # ---
 
@@ -39,8 +44,12 @@ time_nom, t_nominal_arr = get_tb(d_tb_dt, params_nominal, step_size)
 t_final_nominal = t_nominal_arr[-1]
 
 # Plot the nominal temperature evolution to check the ODE solution.
-plt.plot(time_nom, t_nominal_arr)
-plt.show()
+fig_ode = plt.figure()
+plt.plot(time_nom, t_nominal_arr, label='Nominal Temperature Evolution')
+plt.xlabel("Time (s)")
+plt.ylabel("Temperature (K)")
+plt.title("Nominal ODE Solution Check")
+plt.grid(True, alpha=0.3)
 
 # Store nominal results, which serve as the baseline.
 results.append({
@@ -78,6 +87,11 @@ df_results = pd.DataFrame(results)
 df_results['S_dimless'] = (df_results['dT'] / t_final_nominal) / (df_results['dM'] / mass_flow_nominal)
 print(params_perturbed)
 
+# --- 2. Save results table ---
+table_path = os.path.join(TABLES_DIR, 'massflow_sensitivity.csv')
+df_results.to_csv(table_path, index=False)
+print(f"✓ Data saved to {os.path.relpath(table_path)}")
+
 # Sort results by mass flow rate, which is useful before interpolation.
 df_results_sorted = df_results.sort_values(by='M_flow').reset_index(drop=True)
 
@@ -94,12 +108,12 @@ t_final_spline = cs(mass_flow_smooth)
 
 # ---
 
-# 📊 Plotting Results
-plt.figure(figsize=(10, 5))
+# Plotting Results
+fig_sensitivity = plt.figure(figsize=(10, 5))
 
 # Scatter plot of the simulated data points.
 plt.scatter(
-    df_results['M_flow'] * 1000,
+    df_results_sorted['M_flow'] * 1000,
     df_results['T_final'],
     color='blue',
     marker='o',
@@ -129,4 +143,12 @@ plt.ylabel('Final Battery Temperature, $T_{b,final}$ (K)')
 plt.title('Final Temperature Sensitivity to Mass Flow Rate with Cubic Spline')
 plt.grid(True, alpha=0.3)
 plt.legend()
+
+# --- 3. Save plots ---
+plot_path_ode = os.path.join(FIGURES_DIR, 'massflow_sensitivity_ode_check.png')
+fig_ode.savefig(plot_path_ode, dpi=300)
+print(f"✓ ODE check plot saved to {os.path.relpath(plot_path_ode)}")
+plot_path_sensitivity = os.path.join(FIGURES_DIR, 'massflow_sensitivity_analysis.png')
+fig_sensitivity.savefig(plot_path_sensitivity, dpi=300)
+print(f"✓ Sensitivity plot saved to {os.path.relpath(plot_path_sensitivity)}")
 plt.show()
