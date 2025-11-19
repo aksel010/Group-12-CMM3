@@ -30,6 +30,37 @@ def calculate_charging_performance(critical_current, battery_capacity_Ah, effici
         'recommended_C_rate': round(C_rate_practical, 2)
     }
 
+def monte_carlo_error_propagation(critical_current, delta_I, n_simulations=10000):
+    """
+    Monte Carlo simulation for error propagation.
+    """
+    # Define distributions for uncertain parameters
+    current_samples = np.random.normal(critical_current, delta_I, n_simulations)
+    capacity_samples = np.random.normal(6.0, 0.1*6.0, n_simulations)  # 6Ah ± 10%
+    safety_samples = 0.8
+    buffer_samples = 1.2
+    
+    # Run calculations for all samples
+    C_rate_critical_samples = current_samples / capacity_samples
+    theoretical_min_samples = 60 / C_rate_critical_samples
+    
+    C_rate_practical_samples = (current_samples * safety_samples) / capacity_samples
+    practical_min_samples = (60 / C_rate_practical_samples) * buffer_samples
+    
+    # Compute statistics
+    results = {
+        'C_rate_critical': (np.mean(C_rate_critical_samples), np.std(C_rate_critical_samples)),
+        'theoretical_min': (np.mean(theoretical_min_samples), np.std(theoretical_min_samples)),
+        'C_rate_practical': (np.mean(C_rate_practical_samples), np.std(C_rate_practical_samples)),
+        'practical_min': (np.mean(practical_min_samples), np.std(practical_min_samples))
+    }
+    
+    print("Monte Carlo Results:")
+    for key, (mean, std) in results.items():
+        print(f"{key:20} = {mean:.3f} ± {std:.3f}")
+    
+    return results
+
 def run():
     """
     Retrieve the latest critical current, compute and print practical and theoretical fast charge results.
@@ -37,14 +68,12 @@ def run():
     print("Computing...")
     if len(current_store) == 1:
         print("Error: Optimum current not yet calculated!")
-        return
+
+    if len(current_error) == 0:
+        print("Error: Optimum current error not yet calculated!")
     critical_current = current_store[-1]
     results = calculate_charging_performance(critical_current, capacity_battery)
-    print("\n--- Charging Performance Results ---")
-    print(f"Optimum C-rate: {results['critical_C_rate']} C")
-    print(f"Optimum charge time: {results['fastest_charge_min']} min")
-    print(f"Recommended C-rate: {results['recommended_C_rate']} C")
-    print(f"Recommended charge time: {results['recommended_charge_min']} min")
+    monte_carlo_error_propagation(critical_current, current_error[-1])
 
 if __name__ == "__main__":
     run()

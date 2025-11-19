@@ -139,9 +139,9 @@ def run():
         current_store.append(current_0)
     generated_heat = current_store[-1] ** 2 * r_b
     mass_flow_ss, t_c_avg_k, h_ss = calculate_steady_state_mass_flow(generated_heat, mass_flow_initial)
-    print(current_store[-1])
+    
     if mass_flow_ss > 0:
-        print(f"Mass Flow Rate: {mass_flow_ss:.8f} kg/s")
+        print(f"Mass Flow Rate for {current_store[-1]}A: {mass_flow_ss:.8f} kg/s")
         print(f"Average Coolant Temperature: {t_c_avg_k:.2f} K ({t_c_avg_k - 273.15:.2f} °C)")
     else:
         print("Solver failed: non-physical flow result.")

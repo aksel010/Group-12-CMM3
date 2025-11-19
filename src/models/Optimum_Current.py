@@ -30,7 +30,6 @@ def current_params(current):
         tuple: Parameters (m_b, c_b, current, losses, a_s, t_in, ss_value)
             for dTb_dt ODE function.
     """
-    print(current)
     return (
         m_cell,
         c_b,
@@ -102,6 +101,33 @@ def find_root_cubic_spline(current_array, delta_temp_array):
             
     return (current_min + current_max) / 2
 
+def calculate_spline_error(current_array, delta_temp_array):
+    """Simple estimate of cubic spline interpolation error"""
+    # Maximum spacing between data points
+    max_spacing = np.max(np.diff(current_array))
+    
+    # Simple error estimate based on spacing
+    # For cubic splines, error typically scales with h^4 where h is spacing
+    error_estimate = 0.01 * (max_spacing ** 2)  # Empirical scaling
+    
+    return error_estimate
+
+def calculate_current_error(current_array, delta_temp_array, critical_current):
+    """Calculate error in the critical current estimate"""
+    
+    # Get the slope at the critical point
+    slope = current_profile_derivative(current_array, delta_temp_array, critical_current)
+    
+    # Get interpolation error
+    spline_error = calculate_spline_error(current_array, delta_temp_array)
+    
+    # Error in current = Error in temperature / Slope
+    if abs(slope) > 0.001:  # Avoid division by zero
+        current_error = spline_error / abs(slope)
+    else:
+        current_error = 0.1  # Conservative estimate if slope is near zero
+    
+    return current_error
 
 def run():
     """
@@ -188,7 +214,6 @@ def run():
     except NameError:
         print("Warning: bisection() not found in root_finders — using manual bisection.")
         critical_current_bisection = find_root_cubic_spline(current_array, delta_temp_array)
-        print(f"Manual bisection result: {critical_current_bisection}")
     
     # Refine with Newton's method
     try:
@@ -199,20 +224,19 @@ def run():
             epsilon=0.01,
             max_iter=50
         )
-        print(f"Newton result: {critical_current_newton}")
     except NameError:
         print("Warning: newton() not found — using bisection only.")
         critical_current_newton = critical_current_bisection
     
     # Calculate RMSE
-    delta_temp_interpolated = np.array([
-        current_profile(current_array, delta_temp_array, current) for current in current_array
-    ])
-    residuals = delta_temp_interpolated - delta_temp_array
-    rmse = np.sqrt(np.mean(residuals**2))
+    print(f'CS Error :{calculate_spline_error(current_array, delta_temp_array)}K')
+    current_error_bisection = calculate_current_error(current_array, delta_temp_array,critical_current_bisection)
+    current_error_newton = calculate_current_error(current_array, delta_temp_array,critical_current_newton)
+    current_error.append(current_error_bisection)
+    current_error.append(current_error_newton)
     
-    print(f"Critical Current: {critical_current_bisection:.2f} A")
-    print(f"Newton result: {critical_current_newton:.2f} A")
+    print(f"Bisection Critical: {critical_current_bisection:.4f} ± {current_error_bisection:.4f} A")
+    print(f"Newton Critical: {critical_current_newton:.4f} ± {current_error_newton:.4f}A")
     
     # Generate smooth interpolated curve
     current_smooth = np.linspace(current_array.min(), current_array.max(), 100)

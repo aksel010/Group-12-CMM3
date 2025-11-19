@@ -12,7 +12,7 @@ v_cell = 1.2  # [V] per cell
 capacity_cell = 6  # [Ah] per cell
 energy_cell = 7.2  # [Wh] per cell
 dc_ir = 2.5e-3  # [Ohm] per cell
-m_cell = 0.0158  # [kg] test cell mass
+m_cell = 0.00158  # [kg] test cell mass
 
 # ========== Battery Pack Properties ========== #
 m_b = m_cell * n_cell  # [kg] total mass
@@ -24,6 +24,7 @@ r_b = dc_ir * n_cell  # [Ohm] total
 current_0 = 17  # [A] initial current
 current_store = [0]  # for optimum current search
 current_threshold = 1e-6  # convergence threshold
+current_error=[]
 
 t_b_max = 40 + 273.13  # [K] maximum safe (cell) temperature
 t_in = 15 + 273.13  # [K] inlet coolant temp
