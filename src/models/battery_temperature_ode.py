@@ -12,7 +12,7 @@ params_initial = (
     m_cell,       # kg
     c_b,       # J/(kg·K)
     current_0,      # Initial current 15A (scalar, not list)
-    0.06,      # Fixed resistance Ω
+    dc_ir*24,      # Fixed resistance Ω
     a_s,       # m²
     t_in,      # K
     mass_flow_initial       # kg/s - nominal mass flow rate

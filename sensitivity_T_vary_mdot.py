@@ -13,9 +13,12 @@ M_perturb_range = np.linspace(0.9 * M_flow_nominal, 1.1 * M_flow_nominal, 10)
 results = []
 stepsize = 0.2
 
-params_nominal = (m_cell, c_b, current_store[-1], r_b, a_s, t_in, M_flow_nominal)
-_, T_nominal_arr = get_tb(d_tb_dt, params_nominal, stepsize)
+params_nominal = (m_cell, c_b, 7.2, dc_ir*24, a_s, t_in, M_flow_nominal)
+time_nom, T_nominal_arr = get_tb(d_tb_dt, params_nominal, stepsize)
 T_final_nominal = T_nominal_arr[-1]
+
+plt.plot(time_nom, T_nominal_arr)
+plt.show()
 
 results.append({
     'M_flow': M_flow_nominal,
@@ -26,7 +29,7 @@ results.append({
 
 for M_flow in M_perturb_range:
 
-    params_perturbed = (m_cell, c_b, current_store[-1], r_b, a_s, t_in, M_flow)
+    params_perturbed = (m_cell, c_b, 7.2, dc_ir*24, a_s, t_in, M_flow)
     _, T_perturbed_arr = get_tb(d_tb_dt, params_perturbed, stepsize)
     T_final_perturbed = T_perturbed_arr[-1]
 
@@ -45,9 +48,9 @@ df_results = pd.DataFrame(results)
 df_results['S_dimless'] = (df_results['dT'] / T_final_nominal) / (df_results['dM'] / M_flow_nominal)
 print(params_perturbed)
 plt.figure(figsize=(10, 5))
-plt.plot(df_results['M_flow'] * 1000, df_results['T_final'], 'bo-', label='$T_{b,final}$ vs $\dot{M}$')
-plt.axhline(y=T_final_nominal, color='r', linestyle='--', label='$T_{b,final, \text{nominal}}$')
-plt.xlabel('Mass Flow Rate, $\dot{M}$ (g/s)')
+plt.scatter(df_results['M_flow'] * 1000, df_results['T_final'], 'bo-', label=r'$T_{b,final}$ vs $\,dot{M}$')
+plt.axhline(y=T_final_nominal, color='r', linestyle='--', label=r'$T_{b,final, \text{nominal}}$')
+plt.xlabel(r'Mass Flow Rate, $\dot{M}$ (g/s)')
 plt.ylabel('Final Battery Temperature, $T_{b,final}$ (K)')
 plt.title('Final Temperature Sensitivity to Mass Flow Rate')
 plt.grid(True, alpha=0.3)
