@@ -72,7 +72,7 @@ class CMM3App(tk.Tk):
         self.current_entry = ttk.Entry(self.input_frame, width=15)
         self.current_entry.insert(0, "17")
         self.current_entry.grid(row=1, column=1, sticky="ew", pady=5, padx=5)
-        ttk.Label(self.input_frame, text="[5 to 30 A]", font=("Arial", 8, "italic"), foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
+        ttk.Label(self.input_frame, text="[1 to 20 A]", font=("Arial", 8, "italic"), foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
         
         # Row 2: RK4 Step Size
         ttk.Label(self.input_frame, text="RK4 Step Size (s):", font=("Arial", 10, "bold")).grid(row=2, column=0, sticky="w", pady=5)
@@ -182,8 +182,8 @@ class CMM3App(tk.Tk):
         # Validate ranges
         if not (1e-8 <= threshold <= 1e-4):
             messagebox.showwarning("Range Warning", "Convergence threshold recommended: [1e-8 to 1e-4]")
-        if not (5 <= initial_current <= 30):
-            messagebox.showwarning("Range Warning", "Initial current recommended: [5 to 30 A]")
+        if not (1 <= initial_current <= 20):
+            messagebox.showwarning("Range Warning", "Initial current recommended: [1 to 20 A]")
         if not (10 <= step_size <= 60):
             messagebox.showwarning("Range Warning", "RK4 step size recommended: [10 to 60 s]")
         if not (35 <= (t_b_max - 273.13) <= 50):

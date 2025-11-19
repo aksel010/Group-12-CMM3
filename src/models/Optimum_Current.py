@@ -157,9 +157,12 @@ def run():
     current_runs = []
     final_temperatures = []
     delta_temp = []
+    
+    # Define current range based on current_0 from config
+    current_start = 1 
+    current_end = current_0 + 10   
 
-    # Run from 6 A to 13 A (adjust range as needed for zero crossing)
-    for current in np.arange(6, 13, 1):
+    for current in np.arange(current_start, current_end, 1):
         iter_start = time.time()
         
         # Total discharge time at this current
