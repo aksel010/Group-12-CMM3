@@ -12,8 +12,8 @@ import time
 
 from src.models.battery_temperature_ode import get_tb, d_tb_dt
 from src.config import *
-from src.models.Mass_flowrate import get_steady_state_values, calculate_steady_state_mass_flow
-from src.models.RK4_Error import get_rk4_error_val
+from src.models.mass_flowrate import get_steady_state_values, calculate_steady_state_mass_flow
+from src.models.rk4_error import get_rk4_error_val
 from src.utils.interpolater import *
 from src.utils.root_finders import bisection, newton
 

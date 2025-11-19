@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from src.config import *
-from src.utils.heptane_interpolater import lambda_func, Cp_func, mu_func, rho_func
-from src.models.battery_temperature_ode import dTb_dt
+from src.utils.heptane_interpolater import lambda_func, cp_func, mu_func, rho_func
+from src.models.battery_temperature_ode import d_tb_dt
 
 def calculate_h(T: float | np.ndarray, m_dot: float) -> float | np.ndarray:
     """
@@ -18,17 +18,17 @@ def calculate_h(T: float | np.ndarray, m_dot: float) -> float | np.ndarray:
     Returns:
         float|array: h [W/m²K].
     """
-    C_RE_for_h = 4 * m_dot / (np.pi * D)
+    C_RE_for_h = 4 * m_dot / (np.pi * d)
     lam = lambda_func(T)
-    Cp = Cp_func(T)
+    Cp = cp_func(T)
     mu = mu_func(T)
     Re = C_RE_for_h / mu
     Pr = Cp * mu / lam
     Nu = 0.023 * (Re ** 0.8) * (Pr ** DITTUS_BOELTER_EXPONENT)
-    h = (Nu * lam) / D
+    h = (Nu * lam) / d
     return h
 
-def dTb_dt_sensitivity(Tb, t, params):
+def d_tb_dt_sensitivity(Tb, t, params):
     """
     Battery temperature ODE for sensitivity study (parametric on m_dot).
     Args:
@@ -41,7 +41,7 @@ def dTb_dt_sensitivity(Tb, t, params):
     m, cp_b, I, R, A_s, T_c_in, m_dot_c = params
     T_c_avg = (Tb + T_c_in) / 2
     h = calculate_h(T_c_avg, m_dot_c)
-    cp_c = Cp_func(T_c_avg)
+    cp_c = cp_func(T_c_avg)
     heating = I ** 2 * R
     cooling_denom = 1 + (h * A_s) / (2 * (m_dot_c / 4) * cp_c)
     cooling = (h * A_s * (Tb - T_c_in)) / cooling_denom
@@ -57,18 +57,18 @@ def solve_ode_for_mdot(m_dot_test: float) -> float:
     """
     params_i = (
         m_b,
-        C_b,
-        I_0,
-        DC_IR * 240,
-        A_s,
-        T_in,
+        c_b,
+        current_0,
+        dc_ir * 240,
+        a_s,
+        t_in,
         m_dot_test
     )
     t0 = 0
-    T0 = T_in
-    t_final = q_b / I_0
+    T0 = t_in
+    t_final = q_b / current_0
     sol = solve_ivp(
-        fun=lambda t, T, *_: dTb_dt_sensitivity(T, t, params_i),
+        fun=lambda t, T, *_: d_tb_dt_sensitivity(T, t, params_i),
         t_span=[t0, t_final],
         y0=[T0],
         method='LSODA',
@@ -85,7 +85,7 @@ def run_sensitivity_analysis():
     m_dot_test_kg_s = np.linspace(0.005, 0.1, 30)
     Q_L_min = m_dot_test_kg_s / rho_avg * 60000
     T_max_K = []
-    print(f"--- Running Sensitivity Analysis (I = {I_0} A) ---")
+    print(f"--- Running Sensitivity Analysis (I = {current_0} A) ---")
     for m_dot in m_dot_test_kg_s:
         try:
             T_final = solve_ode_for_mdot(m_dot)
@@ -95,11 +95,11 @@ def run_sensitivity_analysis():
             T_max_K.append(np.nan)
             print(f"Flow: {m_dot:.5f} kg/s -> ERROR: {e}")
     T_max_C = np.array(T_max_K) - 273.15
-    T_max_constraint = T_b_max - 273.15
+    T_max_constraint = t_b_max - 273.15
     plt.figure(figsize=(10, 6))
     plt.plot(
         Q_L_min, T_max_C,
-        label=f'Max Battery Temp. at I={I_0} A',
+        label=f'Max Battery Temp. at I={current_0} A',
         color='red',
         linewidth=3
     )
