@@ -19,6 +19,7 @@ def get_params_initial():
         t_in,      # K
         mass_flow_initial       # kg/s - nominal mass flow rate
     )
+    return result
 
 # Complete params_initial tuple (initialized but will be rebuilt by get_params_initial())
 params_initial = get_params_initial()
